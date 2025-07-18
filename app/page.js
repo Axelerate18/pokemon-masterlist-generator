@@ -722,6 +722,18 @@ const minWidths = [
         padding: 20px 16px;
         height: 60px; /* adjust as needed */
       }
+        @media (max-width: 600px) {
+      .search-bar-wrapper {
+        flex-wrap: wrap;
+        gap: 12px;
+        height: auto;
+        padding: 12px;
+      }
+
+      .search-bar-wrapper > * {
+        flex: 1 1 100%;
+      }
+    }
        .table-container {
           height: 100vh;
           overflow-y: auto;
@@ -739,6 +751,11 @@ const minWidths = [
           border-bottom: 2px solid #999;
           width: 100vw;         /* 👈 force it to cover the full viewport */
           margin-left: calc(-50vw + 50%); /* 👈 align it to the left edge, regardless of container padding */
+        }
+
+        .table-scroll-wrapper {
+          overflow-x: auto;
+          max-width: 100vw;
         }
 
         table {
@@ -911,6 +928,7 @@ td:nth-child(10) { /* Notes column */
       `}</style>
 
 <div className="table-container" ref={containerRef}>
+    <div className="table-scroll-wrapper">
   <div className="sticky-top-container"> 
     <div className="search-bar-wrapper">
   <label htmlFor="field-select" style={{ marginRight: "8px" }}>Search by:</label>
@@ -1180,6 +1198,7 @@ td:nth-child(10) { /* Notes column */
   )}
 </tbody>
         </table>
+        </div>
       </div>
       <div id="measure-container" style={{
   position: "absolute",
