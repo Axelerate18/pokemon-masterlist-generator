@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "dompurify": "^3.2.6",
     "next": "15.3.3",
     "node-fetch": "^2.7.0",
     "papaparse": "^5.5.3",

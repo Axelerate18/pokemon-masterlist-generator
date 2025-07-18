@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import ReactDOM from "react-dom";
 import Papa from "papaparse";
+import DOMPurify from "dompurify";
 
 function waitForAllImagesToLoad(images) {
   return Promise.all(
@@ -1166,15 +1167,16 @@ td:nth-child(10) { /* Notes column */
 
   return (
     <td
-      className="card-name"
-      data-html={renderCardNameWithSymbols(cardName, row, { skipCGVSymbols })}
-    >
-      <span
-        dangerouslySetInnerHTML={{
-          __html: renderCardNameWithSymbols(cardName, row, { skipCGVSymbols }),
-        }}
-      />
-    </td>
+  className="card-name"
+  data-html={DOMPurify.sanitize(renderCardNameWithSymbols(cardName, row, { skipCGVSymbols }))}
+>
+  <span
+    dangerouslySetInnerHTML={{
+      __html: DOMPurify.sanitize(renderCardNameWithSymbols(cardName, row, { skipCGVSymbols })),
+    }}
+  />
+</td>
+
   );
 })()}
 
@@ -1184,7 +1186,7 @@ td:nth-child(10) { /* Notes column */
 <td className="type">
   <span
     dangerouslySetInnerHTML={{
-      __html: renderTypeWithSymbols(row["Type"])
+      __html: DOMPurify.sanitize(renderTypeWithSymbols(row["Type"])),
     }}
   />
 </td>
