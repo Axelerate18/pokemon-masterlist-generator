@@ -259,6 +259,7 @@ export default function Page() {
   const [filteredData, setFilteredData] = useState([]);
   const [matchingSuggestions, setMatchingSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
   useEffect(() => {
   if (searchPerformed && searchField === "Card Name" && confirmedSearchInput) {
@@ -598,6 +599,29 @@ function renderTypeWithSymbols(typeText) {
   </div>
 `;
 }
+  const handleKeyDown = (e) => {
+  if (!showSuggestions || matchingSuggestions.length === 0) return;
+
+  if (e.key === "ArrowDown") {
+    e.preventDefault();
+    setHighlightedIndex((prev) =>
+      prev < matchingSuggestions.length - 1 ? prev + 1 : 0
+    );
+  } else if (e.key === "ArrowUp") {
+    e.preventDefault();
+    setHighlightedIndex((prev) =>
+      prev > 0 ? prev - 1 : matchingSuggestions.length - 1
+    );
+  } else if (e.key === "Enter") {
+    if (highlightedIndex >= 0 && highlightedIndex < matchingSuggestions.length) {
+      e.preventDefault();
+      const selected = matchingSuggestions[highlightedIndex];
+      setSearchInput(selected);
+      setShowSuggestions(false);
+      setHighlightedIndex(-1);
+    }
+  }
+};
 
   const handleSearch = () => {
   const trimmedInput = searchInput.trim().toLowerCase();
@@ -972,7 +996,7 @@ td:nth-child(10) { /* Notes column */
     setShowSuggestions(false);
   }
 }}
-
+    onKeyDown={handleKeyDown}
     placeholder={`Enter exact ${searchField}`}
     style={{ marginRight: "12px", padding: "4px" }}
     onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
@@ -999,23 +1023,26 @@ td:nth-child(10) { /* Notes column */
       boxSizing: "border-box",
     }}>
       {matchingSuggestions.map((suggestion, index) => (
-        <li
-          key={index}
-          onClick={() => {
-            setSearchInput(suggestion);
-            setShowSuggestions(false);
-          }}
-          style={{
-            padding: "4px 8px",
-            margin: 0,
-            lineHeight: "1.5",
-            cursor: "pointer",
-            borderBottom: "1px solid #eee"
-          }}
-        >
-          {suggestion}
-        </li>
-      ))}
+  <li
+      key={index}
+      onClick={() => {
+        setSearchInput(suggestion);
+        setShowSuggestions(false);
+        setHighlightedIndex(-1);
+      }}
+      style={{
+        padding: "4px 8px",
+        margin: 0,
+        lineHeight: "1.5",
+        cursor: "pointer",
+        borderBottom: "1px solid #eee",
+        backgroundColor: highlightedIndex === index ? "#e0e0e0" : "transparent"
+      }}
+  >
+    {suggestion}
+  </li>
+))}
+
     </ul>,
     document.getElementById("floating-suggestions-root")
   )
