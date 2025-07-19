@@ -714,7 +714,14 @@ const minWidths = [
         margin: 0;
         padding: 0;
         overflow: hidden; /* prevent body scroll which causes double scrollbars */
+        color: #000;
+        background-color: #fff;
+        font-family: var(--font-geist-sans, system-ui, sans-serif);
       }
+      td {
+        color: inherit; /* ensure table cells don't override it */
+      }
+
       .search-bar-wrapper {
         display: flex;
         align-items: center;
