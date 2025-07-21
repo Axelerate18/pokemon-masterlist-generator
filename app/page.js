@@ -1091,131 +1091,121 @@ td:nth-child(10) { /* Notes column */
 
   </div>
 </div>
-        <table ref={tableRef}>
-          <colgroup>
-  {[...Array(10)].map((_, i) => (
-    <col
-      key={i}
-      style={{
-        width: `var(--col-width-${i})`,
-        minWidth: `${minWidths[i]}px`,
-      }}
-    />
-  ))}
-</colgroup>
+        {searchPerformed && (
+  <table ref={tableRef}>
+    <colgroup>
+      {[...Array(10)].map((_, i) => (
+        <col
+          key={i}
+          style={{
+            width: `var(--col-width-${i})`,
+            minWidth: `${minWidths[i]}px`,
+          }}
+        />
+      ))}
+    </colgroup>
+    <thead>
+      <tr>
+        <th>Series</th>
+        <th>Expansion</th>
+        <th>Card Name</th>
+        <th>Set Number</th>
+        <th>Rarity</th>
+        <th>Category</th>
+        <th>Type</th>
+        <th>Variant</th>
+        <th>Release</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      {filteredData.map((row, i) => {
+        const setNumber = (row["Set number"] || "") + (row["Set size"] || "");
 
-          <thead>
-            <tr>
-              <th>Series</th>
-              <th>Expansion</th>
-              <th>Card Name</th>
-              <th>Set Number</th>
-              <th>Rarity</th>
-              <th>Category</th>
-              <th>Type</th>
-              <th>Variant</th>
-              <th>Release</th>
-              <th>Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-  {filteredData.length === 0 ? (
-    <tr>
-      <td className="empty-cell series">{"\u00A0"}</td>
-      <td className="empty-cell expansion">{"\u00A0"}</td>
-      <td className="empty-cell">{"\u00A0"}</td>
-      <td className="empty-cell setNumber">{"\u00A0"}</td>
-      <td className="empty-cell rarity">{"\u00A0"}</td>
-      <td className="empty-cell category">{"\u00A0"}</td>
-      <td className="empty-cell type">{"\u00A0"}</td>
-      <td className="empty-cell variant">{"\u00A0"}</td>
-      <td className="empty-cell release">{"\u00A0"}</td>
-      <td className="empty-cell notes">{"\u00A0"}</td>
-    </tr>
-  ) : (
-    filteredData.map((row, i) => {
-      const setNumber =
-        (row["Set number"] || "") + (row["Set size"] || "");
+        const isEmpty = (value) =>
+          !value || value.toString().trim().length === 0;
 
-      const isEmpty = (value) =>
-        !value || value.toString().trim().length === 0;
-
-      const renderCell = (value, className = "") => {
-        if (isEmpty(value)) {
+        const renderCell = (value, className = "") => {
+          if (isEmpty(value)) {
+            return (
+              <td className={`empty-cell ${className}`} key={Math.random()}>
+                {"\u00A0"}
+              </td>
+            );
+          }
           return (
-            <td className={`empty-cell ${className}`} key={Math.random()}>
-              {"\u00A0"}
+            <td className={className} key={Math.random()}>
+              {value}
             </td>
           );
-        }
+        };
+
+        const rawExpansion = row["Expansion"] || "";
+
         return (
-          <td className={className} key={Math.random()}>
-            {value}
-          </td>
-        );
-      };
+          <tr key={i}>
+            {renderCell(row["Series"], "series")}
+            <td className="expansion">
+              {getSymbolsForExpansion(rawExpansion).map((url, j) => (
+                <img
+                  key={j}
+                  src={url}
+                  alt={`${rawExpansion} symbol`}
+                  className="set-symbol"
+                />
+              ))}
+              {rawExpansion}
+            </td>
+            {(() => {
+              const cardName = row["Card Name"] || "";
+              const series = (row["Series"] || "").toLowerCase();
+              const lowerName = cardName.toLowerCase();
 
-      const rawExpansion = row["Expansion"] || "";
+              const skipCGVSymbols =
+                lowerName === "unown c" ||
+                lowerName === "unown g" ||
+                (lowerName === "unown v" && !series.includes("sw&sh"));
 
-      return (
-        <tr key={i}>
-          {renderCell(row["Series"], "series")}
-          <td className="expansion">
-            {getSymbolsForExpansion(rawExpansion).map((url, j) => (
-              <img
-                key={j}
-                src={url}
-                alt={`${rawExpansion} symbol`}
-                className="set-symbol"
+              return (
+                <td
+                  className="card-name"
+                  data-html={DOMPurify.sanitize(
+                    renderCardNameWithSymbols(cardName, row, { skipCGVSymbols })
+                  )}
+                >
+                  <span
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(
+                        renderCardNameWithSymbols(cardName, row, {
+                          skipCGVSymbols,
+                        })
+                      ),
+                    }}
+                  />
+                </td>
+              );
+            })()}
+            {renderCell(setNumber, "setNumber")}
+            {renderCell(row["Rarity"], "rarity")}
+            {renderCell(row["Category"], "category")}
+            <td className="type">
+              <span
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(
+                    renderTypeWithSymbols(row["Type"])
+                  ),
+                }}
               />
-            ))}
-            {rawExpansion}
-          </td>
-  {(() => {
-  const cardName = row["Card Name"] || "";
-  const series = (row["Series"] || "").toLowerCase();
-  const lowerName = cardName.toLowerCase();
-  
-  const skipCGVSymbols =
-    lowerName === "unown c" ||
-    lowerName === "unown g" ||
-    (lowerName === "unown v" && !series.includes("sw&sh"));
-
-  return (
-    <td
-  className="card-name"
-  data-html={DOMPurify.sanitize(renderCardNameWithSymbols(cardName, row, { skipCGVSymbols }))}
->
-  <span
-    dangerouslySetInnerHTML={{
-      __html: DOMPurify.sanitize(renderCardNameWithSymbols(cardName, row, { skipCGVSymbols })),
-    }}
-  />
-</td>
-
-  );
-})()}
-
-          {renderCell(setNumber, "setNumber")}
-          {renderCell(row["Rarity"], "rarity")}
-          {renderCell(row["Category"], "category")}
-<td className="type">
-  <span
-    dangerouslySetInnerHTML={{
-      __html: DOMPurify.sanitize(renderTypeWithSymbols(row["Type"])),
-    }}
-  />
-</td>
-
-          {renderCell(row["Variant"], "variant")}
-          {renderCell(row["Release"], "release")}
-          {renderCell(row["Notes"], "notes")}
-        </tr>
-      );
-    })
-  )}
-</tbody>
-        </table>
+            </td>
+            {renderCell(row["Variant"], "variant")}
+            {renderCell(row["Release"], "release")}
+            {renderCell(row["Notes"], "notes")}
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
+)}
         </div>
       </div>
       <div id="measure-container" style={{
