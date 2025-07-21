@@ -752,19 +752,17 @@ const minWidths = [
         }
 
       .sticky-top-container {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  background-color: white;
-  border-bottom: 2px solid #999;
   width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
   margin-left: 0;
 }
 
-/* 🧠 Enable scroll-safe layout trick only on mobile */
+/* 🧠 Only apply layout trick on mobile to stretch edge-to-edge */
 @media (max-width: 600px) {
   .sticky-top-container {
     width: 100vw;
+    max-width: 100vw;
     margin-left: calc(-50vw + 50%);
   }
 }
