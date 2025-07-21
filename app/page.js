@@ -713,6 +713,8 @@ const minWidths = [
       html, body {
         margin: 0;
         padding: 0;
+        height: 100%;
+        overflow-x: hidden;
         overflow: hidden; /* prevent body scroll which causes double scrollbars */
         color: #000;
         background-color: #fff;
@@ -744,7 +746,7 @@ const minWidths = [
       }
     }
        .table-container {
-          min-height: 100vh;
+          height: 100vh;
           overflow-y: auto;
           overflow-x: hidden;
           padding-bottom: 1px;
