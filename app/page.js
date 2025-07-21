@@ -744,9 +744,10 @@ const minWidths = [
       }
     }
        .table-container {
-          min-height: 100vh;
+          height: 100vh;
           overflow-y: auto;
           overflow-x: hidden;
+          padding-bottom: 1px;
           padding-right: 8px;
           box-sizing: border-box;
           background-color: white;
