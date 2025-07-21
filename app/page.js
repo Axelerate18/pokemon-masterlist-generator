@@ -710,7 +710,7 @@ const minWidths = [
   return (
     <>
       <style>{`
-      body {
+      html, body {
         margin: 0;
         padding: 0;
         overflow: hidden; /* prevent body scroll which causes double scrollbars */
@@ -775,7 +775,7 @@ const minWidths = [
 
         table {
           border-collapse: collapse;
-          width: 100%;
+          min-width: 100%;
           table-layout: fixed; /* ✅ forces column widths */
           font-size: 14px;
           white-space: nowrap;
