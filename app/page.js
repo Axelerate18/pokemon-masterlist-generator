@@ -762,8 +762,8 @@ const minWidths = [
         }
 
         .table-scroll-wrapper {
-          overflow-x: auto;
-          max-width: 100vw;
+          overflow-x: hidden;
+          max-width: 100%;
         }
 
         table {
