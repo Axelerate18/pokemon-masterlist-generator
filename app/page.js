@@ -711,16 +711,13 @@ const minWidths = [
     <>
       <style>{`
       body {
-  margin: 0;
-  padding: 0;
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-x pan-y;
-  color: #000;
-  background-color: #fff;
-  font-family: var(--font-geist-sans, system-ui, sans-serif);
-}
-
+        margin: 0;
+        padding: 0;
+        overflow: hidden; /* prevent body scroll which causes double scrollbars */
+        color: #000;
+        background-color: #fff;
+        font-family: var(--font-geist-sans, system-ui, sans-serif);
+      }
       td {
         color: inherit; /* ensure table cells don't override it */
       }
@@ -760,13 +757,13 @@ const minWidths = [
           z-index: 20;
           background-color: white;
           border-bottom: 2px solid #999;
-          width: 100%;
-          margin-left: 0
+          width: 100vw;         /* 👈 force it to cover the full viewport */
+          margin-left: calc(-50vw + 50%); /* 👈 align it to the left edge, regardless of container padding */
         }
 
         .table-scroll-wrapper {
-          overflow-x: hidden;
-          max-width: 100%;
+          overflow-x: auto;
+          max-width: 100vw;
         }
 
         table {
@@ -934,24 +931,6 @@ td:nth-child(10) { /* Notes column */
             button:active {
               box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.2);
               transform: translateY(1px);
-            }
-
-            @media screen and (max-width: 900px) and (orientation: landscape) {
-              .table-scroll-wrapper {
-                overflow-x: hidden;
-              }
-
-              table {
-                width: 100vw !important;
-                max-width: 100vw !important;
-                table-layout: fixed !important;
-                font-size: 14px !important; /* Match desktop */
-              }
-
-              thead th,
-              tbody td {
-                padding: 4px 8px !important; /* Match desktop */
-              }
             }
 
       `}</style>
