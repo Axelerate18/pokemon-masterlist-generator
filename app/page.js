@@ -744,7 +744,7 @@ const minWidths = [
       }
     }
        .table-container {
-          height: calc(100vh - 62px);
+          min-height: 100vh;
           overflow-y: auto;
           overflow-x: hidden;
           padding-bottom: 1px;
@@ -754,19 +754,14 @@ const minWidths = [
         }
 
       .sticky-top-container {
-  position: sticky;           /* 👈 Make it actually sticky */
-  top: 0;                     /* 👈 Stick to top of viewport */
-  z-index: 20;                /* 👈 Stay above table header */
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
   overflow-y: hidden;
   margin-left: 0;
-  background-color: white;    /* Ensure background covers content below */
-  border-bottom: 2px solid #999;
 }
 
-/* 🧠 Mobile layout trick */
+/* 🧠 Only apply layout trick on mobile to stretch edge-to-edge */
 @media (max-width: 600px) {
   .sticky-top-container {
     width: 100vw;
@@ -774,6 +769,7 @@ const minWidths = [
     margin-left: calc(-50vw + 50%);
   }
 }
+
 
         .table-scroll-wrapper {
           overflow-x: auto;
@@ -948,9 +944,10 @@ td:nth-child(10) { /* Notes column */
             }
 
       `}</style>
-<div className="sticky-top-container">
+
 <div className="table-container" ref={containerRef}>
     <div className="table-scroll-wrapper">
+  <div className="sticky-top-container"> 
     <div className="search-bar-wrapper">
   <label htmlFor="field-select" style={{ marginRight: "8px" }}>Search by:</label>
 
