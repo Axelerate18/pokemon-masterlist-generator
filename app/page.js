@@ -729,6 +729,7 @@ const minWidths = [
         justify-content: flex-start;
         padding: 20px 16px;
         height: 60px; /* adjust as needed */
+        overflow-y: hidden;
       }
         @media (max-width: 600px) {
       .search-bar-wrapper {
@@ -755,6 +756,7 @@ const minWidths = [
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
+  overflow-y: hidden;
   margin-left: 0;
 }
 
