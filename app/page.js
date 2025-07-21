@@ -757,8 +757,8 @@ const minWidths = [
           z-index: 20;
           background-color: white;
           border-bottom: 2px solid #999;
-          width: 100vw;         /* 👈 force it to cover the full viewport */
-          margin-left: calc(-50vw + 50%); /* 👈 align it to the left edge, regardless of container padding */
+          width: 100%;
+          margin-left: 0
         }
 
         .table-scroll-wrapper {
