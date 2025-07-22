@@ -711,13 +711,15 @@ const minWidths = [
     <>
       <style>{`
       html, body {
-  margin: 0;
-  padding: 0;
-  color: #000;
-  background-color: #fff;
-  font-family: var(--font-geist-sans, system-ui, sans-serif);
-}
-
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow-x: hidden;
+        overflow: hidden; /* prevent body scroll which causes double scrollbars */
+        color: #000;
+        background-color: #fff;
+        font-family: var(--font-geist-sans, system-ui, sans-serif);
+      }
       td {
         color: inherit; /* ensure table cells don't override it */
       }
@@ -744,17 +746,17 @@ const minWidths = [
       }
     }
        .table-container {
-  width: 100%;
-  box-sizing: border-box;
-  background-color: white;
-  padding: 0 8px 1px 0;
-}
+          height: 100vh;
+          overflow-y: auto;
+          overflow-x: hidden;
+          padding-bottom: 1px;
+          padding-right: 8px;
+          box-sizing: border-box;
+          background-color: white;
+        }
 
       .sticky-top-container {
   width: 100%;
-  position: sticky;
-  top: 0;
-  background: white;
   max-width: 100%;
   overflow-x: hidden;
   overflow-y: hidden;
@@ -945,6 +947,8 @@ td:nth-child(10) { /* Notes column */
 
       `}</style>
 
+<div className="table-container" ref={containerRef}>
+    <div className="table-scroll-wrapper">
   <div className="sticky-top-container"> 
     <div className="search-bar-wrapper">
   <label htmlFor="field-select" style={{ marginRight: "8px" }}>Search by:</label>
@@ -1087,14 +1091,11 @@ td:nth-child(10) { /* Notes column */
       : `${displayedData.length} card${displayedData.length !== 1 ? "s" : ""}`
     : ""}
 </span>
+
   </div>
 </div>
-
-<div className="table-container" ref={containerRef}>
-  <div className="table-scroll-wrapper">
-    {searchPerformed && (
-      <table ref={tableRef}>
-
+        {searchPerformed && (
+  <table ref={tableRef}>
     <colgroup>
       {[...Array(10)].map((_, i) => (
         <col
