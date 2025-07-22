@@ -945,8 +945,6 @@ td:nth-child(10) { /* Notes column */
 
       `}</style>
 
-<div className="table-container" ref={containerRef}>
-    <div className="table-scroll-wrapper">
   <div className="sticky-top-container"> 
     <div className="search-bar-wrapper">
   <label htmlFor="field-select" style={{ marginRight: "8px" }}>Search by:</label>
@@ -1089,11 +1087,14 @@ td:nth-child(10) { /* Notes column */
       : `${displayedData.length} card${displayedData.length !== 1 ? "s" : ""}`
     : ""}
 </span>
-
   </div>
 </div>
-        {searchPerformed && (
-  <table ref={tableRef}>
+
+<div className="table-container" ref={containerRef}>
+  <div className="table-scroll-wrapper">
+    {searchPerformed && (
+      <table ref={tableRef}>
+
     <colgroup>
       {[...Array(10)].map((_, i) => (
         <col
