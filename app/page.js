@@ -746,12 +746,11 @@ const minWidths = [
       }
     }
        .table-container {
-          overflow-x: hidden;
-          padding-bottom: 1px;
-          padding-right: 8px;
-          box-sizing: border-box;
-          background-color: white;
-        }
+  width: 100%;
+  box-sizing: border-box;
+  background-color: white;
+  padding: 0 8px 1px 0;
+}
 
       .sticky-top-container {
   width: 100%;
