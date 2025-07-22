@@ -711,15 +711,13 @@ const minWidths = [
     <>
       <style>{`
       html, body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        overflow-x: hidden;
-        overflow: hidden; /* prevent body scroll which causes double scrollbars */
-        color: #000;
-        background-color: #fff;
-        font-family: var(--font-geist-sans, system-ui, sans-serif);
-      }
+  margin: 0;
+  padding: 0;
+  color: #000;
+  background-color: #fff;
+  font-family: var(--font-geist-sans, system-ui, sans-serif);
+}
+
       td {
         color: inherit; /* ensure table cells don't override it */
       }
