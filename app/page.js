@@ -746,8 +746,6 @@ const minWidths = [
       }
     }
        .table-container {
-          height: 100vh;
-          overflow-y: auto;
           overflow-x: hidden;
           padding-bottom: 1px;
           padding-right: 8px;
@@ -757,6 +755,9 @@ const minWidths = [
 
       .sticky-top-container {
   width: 100%;
+  position: sticky;
+  top: 0;
+  background: white;
   max-width: 100%;
   overflow-x: hidden;
   overflow-y: hidden;
