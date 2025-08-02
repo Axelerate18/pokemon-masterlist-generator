@@ -607,7 +607,7 @@ function renderTypeWithSymbols(typeText) {
   }
 
   const IGNORE_SUFFIXES = [
-    "(E)", "(P)", "(WC)", "(TK)", "(BA)", "(Classic Collection)", 
+    "(E)", "(P)", "(A)", "(WC)", "(TK)", "(BA)", "(Classic Collection)", 
     "(Trainer Gallery)", "(ToT", "(PPS", "(Galarian Gallery)", "(Shiny Vault)"
   ];
 
@@ -653,33 +653,70 @@ function renderTypeWithSymbols(typeText) {
     filtered = filtered.map((item, index) => ({ ...item, __index: index }));
 
     filtered.sort((a, b) => {
-      const aRaw = a["Set number"] || "";
-      const bRaw = b["Set number"] || "";
+  const aRaw = a["Set number"] || "";
+  const bRaw = b["Set number"] || "";
 
-      const numOnly = /^\d+$/;
+  const rangeRegex = /^([A-Z]+)?(\d+)-(\d+)$/i;
+  const singleRegex = /^([A-Z]+)?(\d{1,4})$/i;
 
-      const isANumeric = numOnly.test(aRaw);
-      const isBNumeric = numOnly.test(bRaw);
+  const aRange = aRaw.match(rangeRegex);
+  const bRange = bRaw.match(rangeRegex);
+  const aSingle = aRaw.match(singleRegex);
+  const bSingle = bRaw.match(singleRegex);
 
-      if (isANumeric && isBNumeric) {
-        return parseInt(aRaw, 10) - parseInt(bRaw, 10);
-      }
+  // Range vs. Single
+  if (aRange && bSingle) {
+    const aPrefix = aRange[1] || "";
+    const aEnd = parseInt(aRange[3], 10);
+    const bPrefix = bSingle[1] || "";
+    const bNum = parseInt(bSingle[2], 10);
 
-      if (isANumeric) return -1;
-      if (isBNumeric) return 1;
+    const prefixCompare = aPrefix.toUpperCase().localeCompare(bPrefix.toUpperCase());
+    if (prefixCompare !== 0) return prefixCompare;
 
-      const aMatch = aRaw.match(/^([A-Z]+)?(\d+)$/i);
-      const bMatch = bRaw.match(/^([A-Z]+)?(\d+)$/i);
+    return aEnd - bNum + 1; // place range after single
+  }
 
-      if (aMatch && bMatch) {
-        const [, aPrefix = "", aNum] = aMatch;
-        const [, bPrefix = "", bNum] = bMatch;
+  if (aSingle && bRange) {
+    const aPrefix = aSingle[1] || "";
+    const aNum = parseInt(aSingle[2], 10);
+    const bPrefix = bRange[1] || "";
+    const bEnd = parseInt(bRange[3], 10);
 
-        const prefixCompare = aPrefix.localeCompare(bPrefix);
-        if (prefixCompare !== 0) return prefixCompare;
+    const prefixCompare = aPrefix.toUpperCase().localeCompare(bPrefix.toUpperCase());
+    if (prefixCompare !== 0) return prefixCompare;
 
-        return parseInt(aNum, 10) - parseInt(bNum, 10);
-      }
+    return aNum - bEnd - 1; // place range after single
+  }
+
+  // Both ranges
+  if (aRange && bRange) {
+    const aPrefix = aRange[1] || "";
+    const aStart = parseInt(aRange[2], 10);
+    const bPrefix = bRange[1] || "";
+    const bStart = parseInt(bRange[2], 10);
+
+    const prefixCompare = aPrefix.toUpperCase().localeCompare(bPrefix.toUpperCase());
+    if (prefixCompare !== 0) return prefixCompare;
+
+    return aStart - bStart;
+  }
+
+  // Both singles
+  if (aSingle && bSingle) {
+    const aPrefix = aSingle[1] || "";
+    const aNum = parseInt(aSingle[2], 10);
+    const bPrefix = bSingle[1] || "";
+    const bNum = parseInt(bSingle[2], 10);
+
+    const prefixCompare = aPrefix.toUpperCase().localeCompare(bPrefix.toUpperCase());
+    if (prefixCompare !== 0) return prefixCompare;
+
+    return aNum - bNum;
+  }
+
+  // Fallback to lexicographic sort
+  return aRaw.localeCompare(bRaw, undefined, { numeric: true });
 
       return a.__index - b.__index;
     });
