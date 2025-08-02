@@ -522,7 +522,7 @@ function renderCardNameWithSymbols(cardName, row = {}, overrideSymbolFlags = {})
     "LEGEND": "/icons/Legend.png",
     "Mega": "/icons/Mega.png",
     "PrismStar": "/icons/Prism_Star.png",
-    "V-union": "/icons/V-union.png",
+    "V-Union": "/icons/V-union.png",
     "Vmax": "/icons/Vmax.png",
     "Vstar": "/icons/Vstar.png",
     "V": "/icons/V.png",
