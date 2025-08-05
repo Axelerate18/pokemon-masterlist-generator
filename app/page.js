@@ -608,7 +608,7 @@ function renderTypeWithSymbols(typeText) {
 
   const IGNORE_SUFFIXES = [
     "(E)", "(P)", "(A)", "(WC)", "(TK)", "(BA)", "(Classic Collection)", 
-    "(Trainer Gallery)", "(ToT", "(PPS", "(Galarian Gallery)", "(Shiny Vault)"
+    "(Trainer Gallery)", "(ToT2022)", "(ToT2023)", "(PPS1)", "(PPS2)", "(PPS3)", "(Galarian Gallery)", "(Shiny Vault)"
   ];
 
   function stripSuffix(expansionName) {
