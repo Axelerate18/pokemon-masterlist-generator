@@ -182,8 +182,8 @@ function getSymbolsForExpansion(expansionName) {
   }
   // Handle expansions that contain one of the ignore suffixes
   const IGNORE_SUFFIXES = [
-    "(E)", "(P)", "(WC)", "(TK)", "(BA)", "(Classic Collection)",
-    "(Trainer Gallery)", "(ToT", "(PPS", "(Galarian Gallery)", "(Shiny Vault)"
+    "(E)", "(P)", "(A)", "(WC)", "(TK)", "(BA)", "(Classic Collection)", 
+    "(Trainer Gallery)", "(ToT2022)", "(ToT2023)", "(PPS1)", "(PPS2)", "(PPS3)", "(Galarian Gallery)", "(Shiny Vault)"
   ];
 
   const ignoreSuffixMatch = IGNORE_SUFFIXES.find(suffix => name.includes(suffix));
@@ -209,8 +209,8 @@ function getLogoForExpansion(expansionName) {
   }
 
   const IGNORE_SUFFIXES = [
-    "(E)", "(P)", "(WC)", "(TK)", "(BA)", "(Classic Collection)",
-    "(Trainer Gallery)", "(ToT", "(PPS", "(Galarian Gallery)", "(Shiny Vault)"
+    "(E)", "(P)", "(A)", "(WC)", "(TK)", "(BA)", "(Classic Collection)", 
+    "(Trainer Gallery)", "(ToT2022)", "(ToT2023)", "(PPS1)", "(PPS2)", "(PPS3)", "(Galarian Gallery)", "(Shiny Vault)"
   ];
 
   const matchedSuffix = IGNORE_SUFFIXES.find((suffix) =>
