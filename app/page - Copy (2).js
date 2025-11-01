@@ -244,9 +244,8 @@ export default function Page() {
   const containerRef = useRef(null);
   const tableRef = useRef(null);
   const inputRef = useRef(null);
-  const descriptionRef = useRef(null);
-  const bugRef = useRef(null);
 
+  // Base font size in px
   const BASE_FONT_SIZE = 14;
   const fontSize = BASE_FONT_SIZE;
   const [searchField, setSearchField] = useState("Card Name");
@@ -257,31 +256,6 @@ export default function Page() {
   const [matchingSuggestions, setMatchingSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showReportForm, setShowReportForm] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const updateReportField = (field, value) => {
-  setReportData(prev => ({ ...prev, [field]: value }));
-};
-  const [reportData, setReportData] = useState({
-    type: "", // Section 1
-    errorCategory: "", // Section 2 — only for "Wrong/Missing Data"
-    expansion: "",
-    setNumber: "",
-    description: "",
-    bug: "",
-  });
-
-  useEffect(() => {
-  const resize = (el) => {
-    if (el) {
-      el.style.height = "auto";
-      el.style.height = `${el.scrollHeight}px`;
-    }
-  };
-
-  resize(descriptionRef.current);
-  resize(bugRef.current);
-}, [reportData.description, reportData.bug]);
-
 
   useEffect(() => {
   if (searchPerformed && searchField === "Card Name" && confirmedSearchInput) {
@@ -810,6 +784,10 @@ const handleDownloadCSV = () => {
 
 };
 
+const handleGoogleExport = () => {
+  alert("Google Sheets export coming soon!");
+};
+
 const minWidths = [
   58,  // Series
   85, // Expansion
@@ -1066,8 +1044,7 @@ td:nth-child(10) { /* Notes column */
 <div className="table-container" ref={containerRef}>
     <div className="table-scroll-wrapper">
   <div className="sticky-top-container"> 
-    <div className="search-bar-wrapper" style={{ position: "relative" }}>
-
+    <div className="search-bar-wrapper">
   <label htmlFor="field-select" style={{ marginRight: "8px" }}>Search by:</label>
 
 <select
@@ -1152,7 +1129,7 @@ td:nth-child(10) { /* Notes column */
 
 </div>
 
-<button onClick={handleSearch}>Generate</button>
+<button onClick={handleSearch}>Search</button>
 
 {searchPerformed && confirmedSearchField === "Expansion" && confirmedSearchInput && (
   <div style={{
@@ -1239,34 +1216,33 @@ td:nth-child(10) { /* Notes column */
   Report
 </button>
 
-
-
 </div>
 
   </div>
 </div>
+
 {showReportForm && (
   <div style={{
-    position: "absolute",
-    top: "61px",
-    right: "23px",
-    zIndex: 99999,
-    width: "100%",
-    maxWidth: "600px",
-    backgroundColor: "#fffceb",
+    marginTop: "12px",
+    padding: "12px",
     border: "1px solid #ccc",
     borderRadius: "6px",
-    padding: "16px",
-    boxShadow: "0 4px 8px rgba(0,0,0,0.1)"
+    backgroundColor: "#fffceb",
+    maxWidth: "800px",
+    marginLeft: "auto",
+    marginRight: "auto"
   }}>
+    <p style={{ marginBottom: "10px", fontStyle: "italic", color: "#444" }}>
+      This form submits in the background — no login or new tab needed.
+    </p>
     <iframe
       src="https://docs.google.com/forms/d/e/1FAIpQLSdlfjhktECan559jo7fKABV08IrGDtKIr3PKD04DUE405KenQ/viewform?embedded=true"
       width="100%"
-      height="800"
+      height="700"
       frameBorder="0"
       marginHeight="0"
       marginWidth="0"
-      title="Card Report Form"
+      title="Report Form"
       style={{ border: "none" }}
     >
       Loading…

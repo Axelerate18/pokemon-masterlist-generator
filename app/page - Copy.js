@@ -232,6 +232,10 @@ function extractPokemonName(cardName) {
     .toLowerCase()
     .replace(/\s+/g, "-"); // turn spaces into hyphens
 }
+
+const csvUrl =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcbbI3WUWbmjXYay0BQKF7wJ5kR8RoHIXQoUbH4yWSzySeGib6VGtx_xSp7BLnVuF_7oOrnYi_sJfh/pub?gid=0&single=true&output=csv";
+
 export default function Page() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -244,9 +248,8 @@ export default function Page() {
   const containerRef = useRef(null);
   const tableRef = useRef(null);
   const inputRef = useRef(null);
-  const descriptionRef = useRef(null);
-  const bugRef = useRef(null);
 
+  // Base font size in px
   const BASE_FONT_SIZE = 14;
   const fontSize = BASE_FONT_SIZE;
   const [searchField, setSearchField] = useState("Card Name");
@@ -256,32 +259,6 @@ export default function Page() {
   const [filteredData, setFilteredData] = useState([]);
   const [matchingSuggestions, setMatchingSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [showReportForm, setShowReportForm] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const updateReportField = (field, value) => {
-  setReportData(prev => ({ ...prev, [field]: value }));
-};
-  const [reportData, setReportData] = useState({
-    type: "", // Section 1
-    errorCategory: "", // Section 2 — only for "Wrong/Missing Data"
-    expansion: "",
-    setNumber: "",
-    description: "",
-    bug: "",
-  });
-
-  useEffect(() => {
-  const resize = (el) => {
-    if (el) {
-      el.style.height = "auto";
-      el.style.height = `${el.scrollHeight}px`;
-    }
-  };
-
-  resize(descriptionRef.current);
-  resize(bugRef.current);
-}, [reportData.description, reportData.bug]);
-
 
   useEffect(() => {
   if (searchPerformed && searchField === "Card Name" && confirmedSearchInput) {
@@ -321,31 +298,33 @@ useEffect(() => {
 }, [showSuggestions]);
 
   useEffect(() => {
-  async function fetchData() {
-  try {
-    const res = await fetch("/api/cards");
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    async function fetchData() {
+      try {
+        const res = await fetch(csvUrl);
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        const text = await res.text();
+        const parsed = Papa.parse(text, {
+          header: true,
+          skipEmptyLines: true,
+        });
+        setData(parsed.data);
+       const cleanedExpansions = [...new Set(
+  parsed.data
+    .map(row => row["Expansion"])
+    .filter(Boolean)
+    .map(exp => exp.split(" (")[0].trim()) // remove (E), (P), etc.
+)].sort();
 
-    const data = await res.json();
-    setData(data);
+setExpansionSuggestions(cleanedExpansions);
 
-    const cleanedExpansions = [...new Set(
-      data
-        .map((row) => row["Expansion"])
-        .filter(Boolean)
-        .map((exp) => exp.split(" (")[0].trim())
-    )].sort();
-
-    setExpansionSuggestions(cleanedExpansions);
-  } catch (err) {
-    console.error("Error loading card data:", err);
-  } finally {
-    setLoading(false); // ✅ <- Always unset loading here
-  }
-}
-
-  fetchData();
-}, []);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching CSV:", error);
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
 
   // Resize handler to adjust font size based on widest content in each column
 
@@ -750,65 +729,7 @@ function renderTypeWithSymbols(typeText) {
   setConfirmedSearchField(searchField);
   setFilteredData(filtered);
   setSearchPerformed(true);
-}
-
-const handleDownloadCSV = () => {
-  if (!filteredData.length) {
-    alert("No filtered data to export.");
-    return;
-  }
-
-  // 👇 Re-shape the data to match the visible columns
-  const exportRows = filteredData.map((row) => ({
-    "Series": row["Series"] || "",
-    "Expansion": row["Expansion"] || "",
-    "Card Name": row["Card Name"] || "",
-    "Set Number": `="${(row["Set number"] || "") + (row["Set size"] || "")}"`,
-    "Rarity": row["Rarity"] || "",
-    "Category": row["Category"] || "",
-    "Type": row["Type"] || "",
-    "Variant": row["Variant"] || "",
-    "Release": row["Release"] || "",
-    "Notes": row["Notes"] || "",
-  }));
-
-  // 🧼 Safe filename from search input
-  const raw = confirmedSearchInput || "pokemon";
-  const searchTerm = raw
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "_")
-    .replace(/[^\w\-]/g, "");
-
-  const fieldPrefix =
-    confirmedSearchField === "Card Name"
-      ? searchTerm
-      : confirmedSearchField === "Expansion"
-      ? searchTerm
-      : "pokemon";
-
-  const fileName = `${fieldPrefix}_masterlist.csv`;
-
-  // 🧾 Create CSV with semicolon delimiter
-  const csv = Papa.unparse(exportRows, {
-    delimiter: ";"
-  });
-
-  // 💾 Download logic
-  const BOM = "\uFEFF";
-  const blob = new Blob([BOM + csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement("a");
-  link.href = url;
-  link.setAttribute("download", fileName);
-  document.body.appendChild(link);
-  link.click();
-
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-
-};
+} // 👈 THIS closing brace is easy to miss!
 
 const minWidths = [
   58,  // Series
@@ -1066,8 +987,7 @@ td:nth-child(10) { /* Notes column */
 <div className="table-container" ref={containerRef}>
     <div className="table-scroll-wrapper">
   <div className="sticky-top-container"> 
-    <div className="search-bar-wrapper" style={{ position: "relative" }}>
-
+    <div className="search-bar-wrapper">
   <label htmlFor="field-select" style={{ marginRight: "8px" }}>Search by:</label>
 
 <select
@@ -1152,7 +1072,7 @@ td:nth-child(10) { /* Notes column */
 
 </div>
 
-<button onClick={handleSearch}>Generate</button>
+<button onClick={handleSearch}>Search</button>
 
 {searchPerformed && confirmedSearchField === "Expansion" && confirmedSearchInput && (
   <div style={{
@@ -1209,71 +1129,8 @@ td:nth-child(10) { /* Notes column */
     : ""}
 </span>
 
-<button
-  onClick={handleDownloadCSV}
-  title="Save as .csv"
-  style={{ marginLeft: "12px" }}
->
-  Export
-</button>
-
-<div style={{ display: "flex", alignItems: "center", marginLeft: "auto" }}>
-  <span style={{
-    marginRight: "8px",
-    fontSize: "13px",
-    color: "#555",
-    fontStyle: "italic",
-    whiteSpace: "nowrap"
-  }}>
-    Missing or wrong data? Bug? →
-  </span>
-  <button
-  onClick={() => setShowReportForm(prev => !prev)}
-  style={{
-    backgroundColor: "#ffd",
-    color: "#333",
-    border: "1px solid #aaa",
-    fontWeight: "bold",
-  }}
->
-  Report
-</button>
-
-
-
-</div>
-
   </div>
 </div>
-{showReportForm && (
-  <div style={{
-    position: "absolute",
-    top: "61px",
-    right: "23px",
-    zIndex: 99999,
-    width: "100%",
-    maxWidth: "600px",
-    backgroundColor: "#fffceb",
-    border: "1px solid #ccc",
-    borderRadius: "6px",
-    padding: "16px",
-    boxShadow: "0 4px 8px rgba(0,0,0,0.1)"
-  }}>
-    <iframe
-      src="https://docs.google.com/forms/d/e/1FAIpQLSdlfjhktECan559jo7fKABV08IrGDtKIr3PKD04DUE405KenQ/viewform?embedded=true"
-      width="100%"
-      height="800"
-      frameBorder="0"
-      marginHeight="0"
-      marginWidth="0"
-      title="Card Report Form"
-      style={{ border: "none" }}
-    >
-      Loading…
-    </iframe>
-  </div>
-)}
-
         {searchPerformed && (
   <table ref={tableRef}>
     <colgroup>
