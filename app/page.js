@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
+import React, { useEffect, useState, useRef, useLayoutEffect, useMemo } from "react";
 import ReactDOM from "react-dom";
 import Papa from "papaparse";
 import DOMPurify from "dompurify";
@@ -350,6 +350,52 @@ useEffect(() => {
   // Resize handler to adjust font size based on widest content in each column
 
  const displayedData = searchPerformed ? filteredData : data;
+
+ const ABBREVIATION_KEY = {
+  "(E)": "Exclusive",
+  "(P)": "Promo",
+  "(A)": "Alternate Art",
+  "(BA)": "Battle Academy",
+  "(WC)": "World Championship",
+  "(ToT)": "Trick or Trade",
+  "(TK)": "Trainer Kit",
+  "(PPPP)": "Play! Pokémon Prize Pack",
+};
+
+ const usedAbbreviations = useMemo(() => {
+  if (!searchPerformed || !displayedData.length) return [];
+
+  const expansions = displayedData.map(row => row["Expansion"] || "");
+  const found = new Set();
+
+  for (const expansion of expansions) {
+    for (const abbr in ABBREVIATION_KEY) {
+      if (expansion.includes(abbr)) {
+        found.add(abbr);
+      }
+    }
+  }
+
+  return Array.from(found);
+}, [displayedData, searchPerformed]);
+
+const latestReleaseDate = useMemo(() => {
+  if (!data.length) return null;
+
+  const dates = data
+    .map((row) => row["Release"])
+    .filter(Boolean)
+    .map((str) => new Date(str))
+    .filter((d) => !isNaN(d));
+
+  if (!dates.length) return null;
+
+  const latest = new Date(Math.max(...dates));
+  return latest.toLocaleDateString("en-US", {
+    month: "short",
+    year: "numeric"
+  });
+}, [data]);
 
   useLayoutEffect(() => {
   if (!containerRef.current || !tableRef.current || displayedData.length === 0) return;
@@ -1068,7 +1114,7 @@ td:nth-child(10) { /* Notes column */
   <div className="sticky-top-container"> 
     <div className="search-bar-wrapper" style={{ position: "relative" }}>
 
-  <label htmlFor="field-select" style={{ marginRight: "8px" }}>Search by:</label>
+  <label htmlFor="field-select" style={{ marginRight: "8px" }}>Create for:</label>
 
 <select
   id="field-select"
@@ -1217,9 +1263,56 @@ td:nth-child(10) { /* Notes column */
   Export
 </button>
 
-<div style={{ display: "flex", alignItems: "center", marginLeft: "auto" }}>
+{usedAbbreviations.length > 0 && (
+  <div style={{
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "6px",
+    marginLeft: "12px",
+  }}>
+    {usedAbbreviations.map((abbr) => (
+      <div
+        key={abbr}
+        style={{
+          backgroundColor: "#eef1ff",
+          border: "1px solid #aab",
+          borderRadius: "12px",
+          padding: "4px 8px",
+          fontSize: "13px",
+          whiteSpace: "nowrap",
+        }}
+      >
+        <strong>{abbr}</strong> = {ABBREVIATION_KEY[abbr]}
+      </div>
+    ))}
+  </div>
+)}
+
+<div style={{
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "flex-end",
+  marginLeft: "auto",
+  gap: "12px",
+  flexWrap: "wrap"
+}}>
+  {latestReleaseDate && (
+    <div style={{
+      padding: "4px 8px",
+      backgroundColor: "#eafbe7",         // ✅ soft green background
+      border: "1px solid #b6deb3",        // ✅ soft green border
+      borderRadius: "12px",
+      fontSize: "13px",
+      fontWeight: 500,
+      color: "#2e5e2a",                   // ✅ darker green text
+      whiteSpace: "nowrap"
+    }}>
+      Up to date: {latestReleaseDate}
+</div>
+
+  )}
+
   <span style={{
-    marginRight: "8px",
     fontSize: "13px",
     color: "#555",
     fontStyle: "italic",
@@ -1227,20 +1320,18 @@ td:nth-child(10) { /* Notes column */
   }}>
     Missing or wrong data? Bug? →
   </span>
+
   <button
-  onClick={() => setShowReportForm(prev => !prev)}
-  style={{
-    backgroundColor: "#ffd",
-    color: "#333",
-    border: "1px solid #aaa",
-    fontWeight: "bold",
-  }}
->
-  Report
-</button>
-
-
-
+    onClick={() => setShowReportForm(prev => !prev)}
+    style={{
+      backgroundColor: "#ffd",
+      color: "#333",
+      border: "1px solid #aaa",
+      fontWeight: "bold",
+    }}
+  >
+    Report
+  </button>
 </div>
 
   </div>
