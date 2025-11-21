@@ -17,6 +17,170 @@ function waitForAllImagesToLoad(images) {
   );
 }
 
+// ---------------------------
+// STATIC LIST OF POKÉMON SPECIES (for Card Name suggestions)
+// ---------------------------
+const POKEMON_SPECIES = [
+  "Bulbasaur","Ivysaur","Venusaur","Charmander","Charmeleon","Charizard",
+  "Wartortle","Blastoise","Caterpie","Metapod","Butterfree","Weedle","Kakuna",
+  "Beedrill","Pidgey","Pidgeotto","Pidgeot","Rattata","Raticate","Spearow",
+  "Fearow","Ekans","Arbok","Pikachu","Raichu","Sandshrew","Sandslash",
+  "Nidoran♀","Nidorina","Nidoqueen","Nidoran♂","Nidorino","Nidoking","Clefairy",
+  "Clefable","Vulpix","Ninetales","Jigglypuff","Wigglytuff","Zubat","Golbat",
+  "Oddish","Gloom","Vileplume","Paras","Parasect","Venonat","Venomoth",
+  "Diglett","Dugtrio","Meowth","Persian","Psyduck","Golduck","Mankey",
+  "Primeape","Growlithe","Arcanine","Poliwag","Poliwhirl","Poliwrath","Abra",
+  "Kadabra","Alakazam","Machop","Machoke","Machamp","Bellsprout","Weepinbell",
+  "Victreebel","Tentacool","Tentacruel","Geodude","Graveler","Golem","Ponyta",
+  "Rapidash","Slowpoke","Slowbro","Magnemite","Magneton","Farfetch'd","Doduo",
+  "Dodrio","Seel","Dewgong","Grimer","Muk","Shellder","Cloyster","Gastly",
+  "Haunter","Gengar","Onix","Drowzee","Hypno","Krabby","Kingler","Voltorb",
+  "Electrode","Exeggcute","Exeggutor","Cubone","Marowak","Hitmonlee",
+  "Hitmonchan","Lickitung","Koffing","Squirtle","Weezing","Rhyhorn","Rhydon",
+  "Chansey","Tangela","Kangaskhan","Horsea","Seadra","Goldeen","Seaking",
+  "Staryu","Starmie","Mr. Mime","Scyther","Jynx","Electabuzz","Magmar","Pinsir",
+  "Tauros","Magikarp","Gyarados","Lapras","Ditto","Eevee","Vaporeon","Jolteon",
+  "Flareon","Porygon","Omanyte","Omastar","Kabuto","Kabutops","Aerodactyl",
+  "Snorlax","Articuno","Zapdos","Moltres","Dratini","Dragonair","Dragonite",
+  "Mewtwo","Mew","Chikorita","Bayleef","Meganium","Cyndaquil","Quilava",
+  "Typhlosion","Totodile","Croconaw","Feraligatr","Sentret","Furret","Hoothoot",
+  "Noctowl","Ledyba","Ledian","Spinarak","Ariados","Crobat","Chinchou",
+  "Lanturn","Pichu","Cleffa","Igglybuff","Togepi","Togetic","Natu","Xatu",
+  "Mareep","Flaaffy","Ampharos","Bellossom","Marill","Azumarill","Sudowoodo",
+  "Politoed","Hoppip","Skiploom","Jumpluff","Aipom","Sunkern","Sunflora",
+  "Yanma","Wooper","Quagsire","Espeon","Umbreon","Murkrow","Slowking",
+  "Misdreavus","Unown","Wobbuffet","Girafarig","Pineco","Forretress",
+  "Dunsparce","Gligar","Steelix","Snubbull","Granbull","Qwilfish","Scizor",
+  "Shuckle","Heracross","Sneasel","Teddiursa","Ursaring","Slugma","Magcargo",
+  "Swinub","Piloswine","Corsola","Remoraid","Octillery","Delibird","Mantine",
+  "Skarmory","Houndour","Houndoom","Kingdra","Phanpy","Donphan","Porygon2",
+  "Stantler","Smeargle","Tyrogue","Hitmontop","Smoochum","Elekid","Magby",
+  "Miltank","Blissey","Raikou","Entei","Suicune","Larvitar","Pupitar",
+  "Tyranitar","Lugia","Ho-oh","Celebi","Treecko","Grovyle","Sceptile",
+  "Torchic","Combusken","Blaziken","Mudkip","Marshtomp","Swampert","Poochyena",
+  "Mightyena","Zigzagoon","Linoone","Wurmple","Silcoon","Beautifly","Cascoon",
+  "Dustox","Lotad","Lombre","Ludicolo","Seedot","Nuzleaf","Shiftry","Taillow",
+  "Swellow","Wingull","Pelipper","Ralts","Kirlia","Gardevoir","Surskit",
+  "Masquerain","Shroomish","Breloom","Slakoth","Vigoroth","Slaking","Nincada",
+  "Ninjask","Shedinja","Whismur","Loudred","Exploud","Makuhita","Hariyama",
+  "Azurill","Nosepass","Skitty","Delcatty","Sableye","Mawile","Aron","Lairon",
+  "Aggron","Meditite","Medicham","Electrike","Manectric","Plusle","Minun",
+  "Volbeat","Illumise","Roselia","Gulpin","Swalot","Carvanha","Sharpedo",
+  "Wailmer","Wailord","Numel","Camerupt","Torkoal","Spoink","Grumpig","Spinda",
+  "Trapinch","Vibrava","Flygon","Cacnea","Cacturne","Swablu","Altaria",
+  "Zangoose","Seviper","Lunatone","Solrock","Barboach","Whiscash","Corphish",
+  "Crawdaunt","Baltoy","Claydol","Lileep","Cradily","Anorith","Armaldo",
+  "Feebas","Milotic","Castform","Kecleon","Shuppet","Banette","Duskull",
+  "Dusclops","Tropius","Chimecho","Absol","Wynaut","Snorunt","Glalie","Spheal",
+  "Sealeo","Walrein","Clamperl","Huntail","Gorebyss","Relicanth","Luvdisc",
+  "Bagon","Shelgon","Salamence","Beldum","Metang","Metagross","Regirock",
+  "Regice","Registeel","Latias","Latios","Kyogre","Groudon","Rayquaza",
+  "Jirachi","Deoxys","Turtwig","Grotle","Torterra","Chimchar","Monferno",
+  "Infernape","Piplup","Prinplup","Empoleon","Starly","Staravia","Staraptor",
+  "Bidoof","Bibarel","Kricketot","Kricketune","Shinx","Luxio","Luxray","Budew",
+  "Roserade","Cranidos","Rampardos","Shieldon","Bastiodon","Burmy","Wormadam",
+  "Mothim","Combee","Vespiquen","Pachirisu","Buizel","Floatzel","Cherubi",
+  "Cherrim","Shellos","Gastrodon","Ambipom","Drifloon","Drifblim","Buneary",
+  "Lopunny","Mismagius","Honchkrow","Glameow","Purugly","Chingling","Stunky",
+  "Skuntank","Bronzor","Bronzong","Bonsly","Mime Jr.","Happiny","Chatot",
+  "Spiritomb","Gible","Gabite","Garchomp","Munchlax","Riolu","Lucario",
+  "Hippopotas","Hippowdon","Skorupi","Drapion","Croagunk","Toxicroak",
+  "Carnivine","Finneon","Lumineon","Mantyke","Snover","Abomasnow","Weavile",
+  "Magnezone","Lickilicky","Rhyperior","Tangrowth","Electivire","Magmortar",
+  "Togekiss","Yanmega","Leafeon","Glaceon","Gliscor","Mamoswine","Porygon-Z",
+  "Gallade","Probopass","Dusknoir","Froslass","Rotom","Uxie","Mesprit","Azelf",
+  "Dialga","Palkia","Heatran","Regigigas","Giratina","Cresselia","Phione",
+  "Manaphy","Darkrai","Shaymin","Arceus","Victini","Snivy","Servine",
+  "Serperior","Tepig","Pignite","Emboar","Oshawott","Dewott","Samurott",
+  "Patrat","Watchog","Lillipup","Herdier","Stoutland","Purrloin","Liepard",
+  "Pansage","Simisage","Pansear","Simisear","Panpour","Simipour","Munna",
+  "Musharna","Pidove","Tranquill","Unfezant","Blitzle","Zebstrika","Roggenrola",
+  "Boldore","Gigalith","Woobat","Swoobat","Drilbur","Excadrill","Audino",
+  "Timburr","Gurdurr","Conkeldurr","Tympole","Palpitoad","Seismitoad","Throh",
+  "Sawk","Sewaddle","Swadloon","Leavanny","Venipede","Whirlipede","Scolipede",
+  "Cottonee","Whimsicott","Petilil","Lilligant","Basculin","Sandile","Krokorok",
+  "Krookodile","Darumaka","Darmanitan","Maractus","Dwebble","Crustle","Scraggy",
+  "Scrafty","Sigilyph","Yamask","Cofagrigus","Tirtouga","Carracosta","Archen",
+  "Archeops","Trubbish","Garbodor","Zorua","Zoroark","Minccino","Cinccino",
+  "Gothita","Gothorita","Gothitelle","Solosis","Duosion","Reuniclus","Ducklett",
+  "Swanna","Vanillite","Vanillish","Vanilluxe","Deerling","Sawsbuck","Emolga",
+  "Karrablast","Escavalier","Foongus","Amoonguss","Frillish","Jellicent",
+  "Alomomola","Joltik","Galvantula","Ferroseed","Ferrothorn","Klink","Klang",
+  "Klinklang","Tynamo","Eelektrik","Eelektross","Elgyem","Beheeyem","Litwick",
+  "Lampent","Chandelure","Axew","Fraxure","Haxorus","Cubchoo","Beartic",
+  "Cryogonal","Shelmet","Accelgor","Stunfisk","Mienfoo","Mienshao","Druddigon",
+  "Golett","Golurk","Pawniard","Bisharp","Bouffalant","Rufflet","Braviary",
+  "Vullaby","Mandibuzz","Heatmor","Durant","Deino","Zweilous","Hydreigon",
+  "Larvesta","Volcarona","Cobalion","Terrakion","Virizion","Tornadus",
+  "Thundurus","Reshiram","Zekrom","Landorus","Kyurem","Keldeo","Meloetta",
+  "Genesect","Chespin","Quilladin","Chesnaught","Fennekin","Braixen","Delphox",
+  "Froakie","Frogadier","Greninja","Bunnelby","Diggersby","Fletchling",
+  "Fletchinder","Talonflame","Scatterbug","Spewpa","Vivillon","Litleo","Pyroar",
+  "Flabébé","Floette","Florges","Skiddo","Gogoat","Pancham","Pangoro","Furfrou",
+  "Espurr","Meowstic","Honedge","Doublade","Aegislash","Spritzee","Aromatisse",
+  "Swirlix","Slurpuff","Inkay","Malamar","Binacle","Barbaracle","Skrelp",
+  "Dragalge","Clauncher","Clawitzer","Helioptile","Heliolisk","Tyrunt",
+  "Tyrantrum","Amaura","Aurorus","Sylveon","Hawlucha","Dedenne","Carbink",
+  "Goomy","Sliggoo","Goodra","Klefki","Phantump","Trevenant","Pumpkaboo",
+  "Gourgeist","Bergmite","Avalugg","Noibat","Noivern","Xerneas","Yveltal",
+  "Zygarde","Diancie","Hoopa","Volcanion","Rowlet","Dartrix","Decidueye",
+  "Litten","Torracat","Incineroar","Popplio","Brionne","Primarina","Pikipek",
+  "Trumbeak","Toucannon","Yungoos","Gumshoos","Grubbin","Charjabug","Vikavolt",
+  "Crabrawler","Crabominable","Oricorio","Cutiefly","Ribombee","Rockruff",
+  "Lycanroc","Wishiwashi","Mareanie","Toxapex","Mudbray","Mudsdale","Dewpider",
+  "Araquanid","Fomantis","Lurantis","Morelull","Shiinotic","Salandit",
+  "Salazzle","Stufful","Bewear","Bounsweet","Steenee","Tsareena","Comfey",
+  "Oranguru","Passimian","Wimpod","Golisopod","Sandygast","Palossand",
+  "Pyukumuku","Type: Null","Silvally","Minior","Komala","Turtonator",
+  "Togedemaru","Mimikyu","Bruxish","Drampa","Dhelmise","Jangmo-o","Hakamo-o",
+  "Kommo-o","Tapu Koko","Tapu Lele","Tapu Bulu","Tapu Fini","Cosmog","Cosmoem",
+  "Solgaleo","Lunala","Nihilego","Buzzwole","Pheromosa","Xurkitree",
+  "Celesteela","Kartana","Guzzlord","Necrozma","Magearna","Marshadow",
+  "Poipole","Naganadel","Stakataka","Blacephalon","Zeraora","Meltan",
+  "Melmetal","Grookey","Thwackey","Rillaboom","Scorbunny","Raboot","Cinderace",
+  "Sobble","Drizzile","Inteleon","Skwovet","Greedent","Rookidee","Corvisquire",
+  "Corviknight","Blipbug","Dottler","Orbeetle","Nickit","Thievul","Gossifleur",
+  "Eldegoss","Wooloo","Dubwool","Chewtle","Drednaw","Yamper","Boltund",
+  "Rolycoly","Carkol","Coalossal","Applin","Flapple","Appletun","Silicobra",
+  "Sandaconda","Cramorant","Arrokuda","Barraskewda","Toxel","Toxtricity",
+  "Sizzlipede","Centiskorch","Clobbopus","Grapploct","Sinistea","Polteageist",
+  "Hatenna","Hattrem","Hatterene","Impidimp","Morgrem","Grimmsnarl","Obstagoon",
+  "Perrserker","Cursola","Sirfetch'd","Mr. Rime","Runerigus","Milcery",
+  "Alcremie","Falinks","Pincurchin","Snom","Frosmoth","Stonjourner","Eiscue",
+  "Indeedee","Morpeko","Cufant","Copperajah","Dracozolt","Arctozolt","Dracovish",
+  "Arctovish","Duraludon","Dreepy","Drakloak","Dragapult","Zacian","Zamazenta",
+  "Eternatus","Kubfu","Urshifu","Zarude","Regieleki","Regidrago","Glastrier",
+  "Spectrier","Calyrex","Wyrdeer","Kleavor","Ursaluna","Basculegion",
+  "Sneasler","Overqwil","Enamorus","Sprigatito","Floragato","Meowscarada",
+  "Fuecoco","Crocalor","Skeledirge","Quaxly","Quaxwell","Quaquaval","Lechonk",
+  "Oinkologne","Tarountula","Spidops","Nymble","Lokix","Pawmi","Pawmo","Pawmot",
+  "Tandemaus","Maushold","Fidough","Dachsbun","Smoliv","Dolliv","Arboliva",
+  "Squawkabilly","Nacli","Naclstack","Garganacl","Charcadet","Armarouge",
+  "Ceruledge","Tadbulb","Bellibolt","Wattrel","Kilowattrel","Maschiff",
+  "Mabosstiff","Shroodle","Grafaiai","Bramblin","Brambleghast","Toedscool",
+  "Toedscruel","Klawf","Capsakid","Scovillain","Rellor","Rabsca","Flittle",
+  "Espathra","Tinkatink","Tinkatuff","Tinkaton","Wiglett","Wugtrio","Bombirdier",
+  "Finizen","Palafin","Varoom","Revavroom","Cyclizar","Orthworm","Glimmet",
+  "Glimmora","Greavard","Houndstone","Flamigo","Cetoddle","Cetitan","Veluza",
+  "Dondozo","Tatsugiri","Annihilape","Clodsire","Farigiraf","Dudunsparce",
+  "Kingambit","Great Tusk","Scream Tail","Brute Bonnet","Flutter Mane",
+  "Slither Wing","Sandy Shocks","Iron Treads","Iron Bundle","Iron Hands",
+  "Iron Jugulis","Iron Moth","Iron Thorns","Frigibax","Arctibax","Baxcalibur",
+  "Gimmighoul","Gholdengo","Wo-Chien","Chien-Pao","Ting-Lu","Chi-Yu",
+  "Roaring Moon","Iron Valiant","Koraidon","Miraidon","Walking Wake",
+  "Iron Leaves","Dipplin","Poltchageist","Sinistcha","Okidogi","Munkidori",
+  "Fezandipiti","Ogerpon","Archaludon","Hydrapple","Gouging Fire","Raging Bolt",
+  "Iron Boulder","Iron Crown","Terapagos","Pecharunt"
+];
+
+// Turn a display name into a PokeAPI slug
+const speciesToSlug = (name) =>
+  name
+    .toLowerCase()
+    .replace(/['.]/g, "")   // Mr. Mime → mr mime, Farfetch'd → farfetchd
+    .replace(/[:]/g, "")    // Type: Null → type null
+    .replace(/\s+/g, "-");  // spaces → hyphens
+
 // Maps clean expansion names to set symbol URLs
 const setSymbols = {
   "Base Set": "https://images.pokemontcg.io/base1/symbol.png",
@@ -224,6 +388,161 @@ function getLogoForExpansion(expansionName) {
   return setLogos[name] || null;
 }
 
+const typeIcons = {
+    Grass: "https://archives.bulbagarden.net/media/upload/thumb/2/2e/Grass-attack.png/30px-Grass-attack.png",
+    Fire: "https://archives.bulbagarden.net/media/upload/thumb/a/ad/Fire-attack.png/30px-Fire-attack.png",
+    Water: "https://archives.bulbagarden.net/media/upload/thumb/1/11/Water-attack.png/30px-Water-attack.png",
+    Lightning: "https://archives.bulbagarden.net/media/upload/thumb/0/04/Lightning-attack.png/30px-Lightning-attack.png",
+    Psychic: "https://archives.bulbagarden.net/media/upload/thumb/e/ef/Psychic-attack.png/30px-Psychic-attack.png",
+    Fighting: "https://archives.bulbagarden.net/media/upload/thumb/4/48/Fighting-attack.png/30px-Fighting-attack.png",
+    Darkness: "https://archives.bulbagarden.net/media/upload/thumb/a/ab/Darkness-attack.png/30px-Darkness-attack.png",
+    Metal: "https://archives.bulbagarden.net/media/upload/thumb/6/64/Metal-attack.png/30px-Metal-attack.png",
+    Fairy: "https://archives.bulbagarden.net/media/upload/thumb/4/40/Fairy-attack.png/30px-Fairy-attack.png",
+    Dragon: "https://archives.bulbagarden.net/media/upload/thumb/8/8a/Dragon-attack.png/30px-Dragon-attack.png",
+    Colorless: "https://archives.bulbagarden.net/media/upload/thumb/1/1d/Colorless-attack.png/30px-Colorless-attack.png",
+    Rainbow: "https://archives.bulbagarden.net/media/upload/d/dd/Rainbow-attack.png"
+  };
+
+function renderCardNameWithSymbols(cardName, row = {}, overrideSymbolFlags = {}) {
+
+  if (!cardName) return "";
+
+  // --- Hardcoded multi-type Energy cards ---
+  const lower = cardName.toLowerCase().trim();
+
+    // --- Ultra Beast list for GX symbol color override ---
+  const ultraBeasts = [
+    "poipole",
+    "naganadel",
+    "buzzwole",
+    "pheromosa",
+    "xurkitree",
+    "celesteela",
+    "kartana",
+    "guzzlord",
+    "nihilego",
+    "necrozma",
+    "stakataka",
+    "blacephalon"
+  ];
+
+  // Normalize name for checking
+  const baseName = lower.replace(/-gx| ex| vstar| vmax| etc./g, "").trim();
+
+  // Detect if this is an Ultra Beast card
+  const isUltraBeast = ultraBeasts.some(ub => baseName.includes(ub));
+
+  // Flag for GX replacement later
+  const isUltraBeastGX = isUltraBeast && lower.includes("gx");
+
+    // --- Special exception: Holon Energy GL must NOT trigger GL icon ---
+  if (lower === "holon energy gl") {
+    // Return the literal name, untouched
+    return "Holon Energy GL";
+  }
+
+  // Helper: render a sequence of energy icons from typeIcons
+  function energy(types) {
+    return types
+      .map(t => {
+        const src = typeIcons[t];
+        if (!src) return "";
+        return `<img src="${src}" class="inline-symbol" alt="${t} energy" />`;
+      })
+      .join("");
+  }
+
+  // Map of exact card names → base label + energy types
+  const energyCardMap = {
+    
+    // Blend Energy
+    "blend energy grpd": { base: "Blend Energy", types: ["Grass", "Fire", "Psychic", "Darkness"] },
+    "blend energy wlfm": { base: "Blend Energy", types: ["Water", "Lightning", "Fighting", "Metal"] },
+
+    // Unit Energy
+    "unit energy grw": { base: "Unit Energy", types: ["Grass", "Fire", "Water"] },
+    "unit energy lpm": { base: "Unit Energy", types: ["Lightning", "Psychic", "Metal"] },
+    "unit energy fdy": { base: "Unit Energy", types: ["Fighting", "Darkness", "Fairy"] },
+  };
+
+  const energyConfig = energyCardMap[lower];
+
+  if (energyConfig) {
+    // Return *only* the hardcoded energy rendering for these cards
+    // This avoids triggering GL / G / C / V Pokémon badge logic
+    return `${energyConfig.base} ${energy(energyConfig.types)}`;
+  }
+
+  const symbolMap = {
+    "GoldStar": "/icons/GoldStar.png",
+    "EX": "/icons/EX_BW_XY.png",   // uppercase EX only
+    "BREAK": "/icons/Break.png",
+    GX: isUltraBeastGX ? "/icons/GX_red.png" : "/icons/GX_blue.png",
+    "LEGEND": "/icons/Legend.png",
+    "Mega": "/icons/Mega.png",
+    "PrismStar": "/icons/Prism_Star.png",
+    "V-Union": "/icons/V-union.png",
+    "Vmax": "/icons/Vmax.png",
+    "Vstar": "/icons/Vstar.png",
+    "V": "/icons/V.png",
+    "C": "/icons/C.png",
+    "E4": "/icons/E4.png",
+    "FB": "/icons/FB.png",
+    "G": "/icons/G.png",
+    "GL": "/icons/GL.png",
+  };
+
+    const series = (row["Series"] || "").toLowerCase();
+const lowerName = (cardName || "").toLowerCase();
+
+const skipSymbols =
+  overrideSymbolFlags.skipCGVSymbols ||
+  lowerName === "unown c" ||
+  lowerName === "unown g" ||
+  (lowerName === "unown v" && !series.includes("sw&sh"));
+
+  const sortedKeys = Object.keys(symbolMap).sort((a, b) => b.length - a.length);
+
+  let processed = cardName;
+
+  sortedKeys.forEach((key) => {
+  if (skipSymbols && ["C", "G", "V"].includes(key)) {
+    return; // skip these 3 if flag is set
+  }
+  const escapedKey = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+  const regex = new RegExp(`(?<![\\w-])${escapedKey}(?![\\w-])`, "g");
+  const imgTag = `<img src="${symbolMap[key]}" class="inline-symbol" alt="${key} icon" />`;
+  processed = processed.replace(regex, imgTag);
+});
+
+  return processed;
+}
+
+function renderTypeWithSymbols(typeText) {
+  if (!typeText) return "";
+
+  let types = [];
+
+  if (typeText.startsWith("Dual ")) {
+    types = typeText.replace("Dual ", "").split("/");
+  } else {
+    types = [typeText];
+  }
+
+  return `
+  <div class="type-wrapper">
+    ${types
+      .map(type => {
+        const src = typeIcons[type.trim()];
+        return src
+          ? `<img src="${src}" alt="${type}" title="${type}" style="height: 16px;" />`
+          : type;
+      })
+      .join("")}
+  </div>
+`;
+}
+
 function extractPokemonName(cardName) {
   return cardName
     .replace(/\b(Mega|Shiny|EX|GX|VSTAR|VMAX|BREAK|LEGEND|Prism Star|V-UNION|G|GL|C|FB|E4|Lv\.X|δ|STAR|Promo|Forme|Basic|Restored)\b/gi, "")
@@ -232,17 +551,194 @@ function extractPokemonName(cardName) {
     .toLowerCase()
     .replace(/\s+/g, "-"); // turn spaces into hyphens
 }
+
+const CardTable = React.memo(function CardTable({
+  displayedData,
+  tableRef,
+  minWidths
+}) {
+  return (
+    <table ref={tableRef}>
+    <colgroup>
+      {[...Array(10)].map((_, i) => (
+        <col
+          key={i}
+          style={{
+            width: `var(--col-width-${i})`,
+            minWidth: `${minWidths[i]}px`,
+          }}
+        />
+      ))}
+    </colgroup>
+    <thead>
+      <tr>
+        <th>Series</th>
+        <th>Expansion</th>
+        <th>Card Name</th>
+        <th>Set Number</th>
+        <th>Rarity</th>
+        <th>Category</th>
+        <th>Type</th>
+        <th>Variant</th>
+        <th>Release</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      {displayedData.map((row, i) => {
+        const setNumber = (row["Set number"] || "") + (row["Set size"] || "");
+
+        const isEmpty = (value) =>
+          !value || value.toString().trim().length === 0;
+
+        const renderCell = (value, className = "") => {
+          if (isEmpty(value)) {
+            return (
+              <td className={`empty-cell ${className}`} key={Math.random()}>
+                {"\u00A0"}
+              </td>
+            );
+          }
+          return (
+            <td className={className} key={Math.random()}>
+              {value}
+            </td>
+          );
+        };
+
+        const rawExpansion = row["Expansion"] || "";
+
+        return (
+          <tr key={i}>
+            {renderCell(row["Series"], "series")}
+            <td className="expansion">
+              {getSymbolsForExpansion(rawExpansion).map((url, j) => (
+                <img
+                  key={j}
+                  src={url}
+                  alt={`${rawExpansion} symbol`}
+                  className="set-symbol"
+                />
+              ))}
+              {rawExpansion}
+            </td>
+            {(() => {
+              const cardName = row["Card Name"] || "";
+              const series = (row["Series"] || "").toLowerCase();
+              const lowerName = cardName.toLowerCase();
+
+              const skipCGVSymbols =
+                lowerName === "unown c" ||
+                lowerName === "unown g" ||
+                (lowerName === "unown v" && !series.includes("sw&sh"));
+
+              return (
+                <td
+                  className="card-name"
+                  data-html={DOMPurify.sanitize(
+                    renderCardNameWithSymbols(cardName, row, { skipCGVSymbols })
+                  )}
+                >
+                  <span
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(
+                        renderCardNameWithSymbols(cardName, row, {
+                          skipCGVSymbols,
+                        })
+                      ),
+                    }}
+                  />
+                </td>
+              );
+            })()}
+            {renderCell(setNumber, "setNumber")}
+            {renderCell(row["Rarity"], "rarity")}
+            {renderCell(row["Category"], "category")}
+            <td className="type">
+              <span
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(
+                    renderTypeWithSymbols(row["Type"])
+                  ),
+                }}
+              />
+            </td>
+            {renderCell(row["Variant"], "variant")}
+            {renderCell(row["Release"], "release")}
+            {renderCell(row["Notes"], "notes")}
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
+  );
+  }, (prevProps, nextProps) => {
+  // ✅ RE-RENDER ONLY IF THE ACTUAL DATA SHOWN CHANGES
+  return prevProps.displayedData === nextProps.displayedData;
+});
+
+const SuggestionList = React.memo(function SuggestionList({
+  visible,
+  list,
+  position,
+  onSelect,
+  highlightIndex,
+}) {
+  if (!visible || list.length === 0) return null;
+
+  return ReactDOM.createPortal(
+    <ul
+      style={{
+        position: "absolute",
+        top: position.top,
+        left: position.left,
+        width: position.width,
+        background: "white",
+        border: "1px solid #ddd",
+        zIndex: 9999,
+        listStyle: "none",
+        margin: 0,
+        padding: 0,
+        maxHeight: "200px",
+        overflowY: "auto",
+      }}
+    >
+      {list.map((exp, i) => (
+        <li
+          key={exp}
+          style={{
+            padding: "8px 12px",
+            cursor: "pointer",
+            fontSize: "14px",
+            background: i === highlightIndex ? "#e6f2ff" : "white"
+          }}
+          onMouseDown={() => onSelect(exp)}
+        >
+          {exp}
+        </li>
+      ))}
+
+    </ul>,
+    document.getElementById("floating-suggestions-root")
+  );
+});
+
 export default function Page() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [confirmedSearchInput, setConfirmedSearchInput] = useState("");
   const [confirmedSearchField, setConfirmedSearchField] = useState("");
   const [pokemonId, setPokemonId] = useState(null);
-  const [dropdownTop, setDropdownTop] = useState(0);
-  const [dropdownLeft, setDropdownLeft] = useState(0);
+  const [suggestionPos, setSuggestionPos] = useState({ top: 0, left: 0, width: 0 });
+  const [showFieldDropdown, setShowFieldDropdown] = useState(false);
+  const dropdownToggleRef = useRef(null);
+  const fieldMenuRef = useRef(null);
+  const [fieldDropdownPos, setFieldDropdownPos] = useState({ top: 0, left: 0, width: 140 });
 
   const containerRef = useRef(null);
   const tableRef = useRef(null);
+  const generateButtonRef = useRef(null);
+  const debounceRef = useRef(null);
   const inputRef = useRef(null);
   const descriptionRef = useRef(null);
   const bugRef = useRef(null);
@@ -251,11 +747,16 @@ export default function Page() {
   const fontSize = BASE_FONT_SIZE;
   const [searchField, setSearchField] = useState("Card Name");
   const [searchInput, setSearchInput] = useState("");
+  const [activeSearch, setActiveSearch] = useState("");
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [expansionSuggestions, setExpansionSuggestions] = useState([]);
+  const [pokemonNameSuggestions] = useState(POKEMON_SPECIES);
   const [filteredData, setFilteredData] = useState([]);
-  const [matchingSuggestions, setMatchingSuggestions] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestions, setSuggestions] = useState({
+    list: [],
+    visible: false
+  });
+  const [highlightIndex, setHighlightIndex] = useState(-1);
   const [showReportForm, setShowReportForm] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const updateReportField = (field, value) => {
@@ -284,41 +785,38 @@ export default function Page() {
 
 
   useEffect(() => {
-  if (searchPerformed && searchField === "Card Name" && confirmedSearchInput) {
-    const name = extractPokemonName(confirmedSearchInput);
+    const updateSuggestionPos = () => {
+      const rect = inputRef.current?.getBoundingClientRect();
+      if (rect) {
+        setSuggestionPos({
+          top: rect.bottom + window.scrollY,
+          left: rect.left + window.scrollX,
+          width: rect.width
+        });
+      }
+    };
 
-    fetch(`https://pokeapi.co/api/v2/pokemon/${name}`)
-      .then(res => {
-        if (!res.ok) throw new Error("Not found");
-        return res.json();
-      })
-      .then(data => {
-        setPokemonId(data.id); // Save the ID for rendering image
-      })
-      .catch(() => setPokemonId(null)); // Fallback if name is invalid
-  }
-}, [searchPerformed, confirmedSearchInput, searchField]);
+    if (suggestions.visible) {
+      updateSuggestionPos();
+      window.addEventListener("scroll", updateSuggestionPos, true);
+      window.addEventListener("resize", updateSuggestionPos);
+    }
+
+    return () => {
+      window.removeEventListener("scroll", updateSuggestionPos, true);
+      window.removeEventListener("resize", updateSuggestionPos);
+    };
+  }, [suggestions.visible]);
 
 useEffect(() => {
-  const updateDropdownPos = () => {
-    const rect = inputRef.current?.getBoundingClientRect();
-    if (rect) {
-      setDropdownTop(rect.bottom + window.scrollY);
-      setDropdownLeft(rect.left + window.scrollX);
-    }
+  const handleClickOutside = (event) => {
+    if (dropdownToggleRef.current?.contains(event.target)) return; // clicked the trigger
+    if (fieldMenuRef.current?.contains(event.target)) return;      // clicked inside menu
+    setShowFieldDropdown(false);
   };
-
-  if (showSuggestions) {
-    updateDropdownPos();
-    window.addEventListener("scroll", updateDropdownPos, true);
-    window.addEventListener("resize", updateDropdownPos);
-  }
-
-  return () => {
-    window.removeEventListener("scroll", updateDropdownPos, true);
-    window.removeEventListener("resize", updateDropdownPos);
-  };
-}, [showSuggestions]);
+  document.addEventListener("click", handleClickOutside);
+  return () => document.removeEventListener("click", handleClickOutside);
+}, []);
 
   useEffect(() => {
   async function fetchData() {
@@ -347,9 +845,48 @@ useEffect(() => {
   fetchData();
 }, []);
 
+useEffect(() => {
+  // Only fetch a Pokémon sprite when searching by Card Name
+  if (confirmedSearchField !== "Card Name" || !confirmedSearchInput) {
+    setPokemonId(null);
+    return;
+  }
+
+  const slug = speciesToSlug(confirmedSearchInput);
+
+  fetch(`https://pokeapi.co/api/v2/pokemon/${slug}`)
+    .then(res => {
+      if (!res.ok) throw new Error("Not found");
+      return res.json();
+    })
+    .then(json => setPokemonId(json.id))
+    .catch(() => setPokemonId(null));
+}, [confirmedSearchField, confirmedSearchInput]);
+
+useEffect(() => {
+  setHighlightIndex(-1);
+}, [suggestions.list]);
+
+useEffect(() => {
+  if (inputRef.current && searchInput !== "") {
+    // Highlight all text
+    inputRef.current.select();
+  }
+}, [searchField]);
+
   // Resize handler to adjust font size based on widest content in each column
 
- const displayedData = searchPerformed ? filteredData : data;
+ const displayedData = React.useMemo(() => {
+  return searchPerformed ? filteredData : data;
+}, [searchPerformed, filteredData, data]);
+
+const handleSelectSuggestion = React.useCallback((exp) => {
+  setSearchInput(exp);
+  setSuggestions({ list: [], visible: false });
+}, []);
+
+ // number of visible table columns
+const columnCount = 10;
 
  const ABBREVIATION_KEY = {
   "(E)": "Exclusive",
@@ -398,7 +935,10 @@ const latestReleaseDate = useMemo(() => {
 }, [data]);
 
   useLayoutEffect(() => {
-  if (!containerRef.current || !tableRef.current || displayedData.length === 0) return;
+
+    if (!searchPerformed) return;
+    if (!filteredData || filteredData.length === 0) return;  // skip measuring when no rows
+    if (!containerRef.current || !tableRef.current || displayedData.length === 0) return;
 
   const containerWidth = containerRef.current.clientWidth;
 
@@ -568,111 +1108,45 @@ if (totalWidth < containerWidth) {
 };
 
    requestAnimationFrame(() => {
-    console.log("Calling measureTable via RAF, rows:", displayedData.length);
-    measureTable();
+    requestAnimationFrame(() => {
+      measureTable();
+    });
   });
- 
-}, [displayedData]);
+
+}, [searchPerformed, activeSearch, filteredData]);
+
+// Scroll table container to top AFTER measurements are done
+useEffect(() => {
+  if (!searchPerformed) return;
+  if (!filteredData || filteredData.length === 0) return;
+  if (!containerRef.current) return;
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      containerRef.current.scrollTo({
+        top: 0,
+        behavior: "instant"
+      });
+    });
+  });
+}, [activeSearch]);
 
   if (loading) return <div>Loading...</div>;
 
-function renderCardNameWithSymbols(cardName, row = {}, overrideSymbolFlags = {}) {
-
-  if (!cardName) return "";
-
-  const symbolMap = {
-    "GoldStar": "/icons/GoldStar.png",
-    "EX": "/icons/EX_BW_XY.png",   // uppercase EX only
-    "BREAK": "/icons/Break.png",
-    "uGX": "/icons/GX_red.png",
-    "GX": "/icons/GX_blue.png",
-    "LEGEND": "/icons/Legend.png",
-    "Mega": "/icons/Mega.png",
-    "PrismStar": "/icons/Prism_Star.png",
-    "V-Union": "/icons/V-union.png",
-    "Vmax": "/icons/Vmax.png",
-    "Vstar": "/icons/Vstar.png",
-    "V": "/icons/V.png",
-    "C": "/icons/C.png",
-    "E4": "/icons/E4.png",
-    "FB": "/icons/FB.png",
-    "G": "/icons/G.png",
-    "GL": "/icons/GL.png",
-  };
-
-    const series = (row["Series"] || "").toLowerCase();
-const lowerName = (cardName || "").toLowerCase();
-
-const skipSymbols =
-  overrideSymbolFlags.skipCGVSymbols ||
-  lowerName === "unown c" ||
-  lowerName === "unown g" ||
-  (lowerName === "unown v" && !series.includes("sw&sh"));
-
-  const sortedKeys = Object.keys(symbolMap).sort((a, b) => b.length - a.length);
-
-  let processed = cardName;
-
-  sortedKeys.forEach((key) => {
-  if (skipSymbols && ["C", "G", "V"].includes(key)) {
-    return; // skip these 3 if flag is set
-  }
-  const escapedKey = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-  const regex = new RegExp(`(?<![\\w-])${escapedKey}(?![\\w-])`, "g");
-  const imgTag = `<img src="${symbolMap[key]}" class="inline-symbol" alt="${key} icon" />`;
-  processed = processed.replace(regex, imgTag);
-});
-
-  return processed;
-}
-
-function renderTypeWithSymbols(typeText) {
-  if (!typeText) return "";
-
-  const typeIcons = {
-    Grass: "https://archives.bulbagarden.net/media/upload/thumb/2/2e/Grass-attack.png/30px-Grass-attack.png",
-    Fire: "https://archives.bulbagarden.net/media/upload/thumb/a/ad/Fire-attack.png/30px-Fire-attack.png",
-    Water: "https://archives.bulbagarden.net/media/upload/thumb/1/11/Water-attack.png/30px-Water-attack.png",
-    Lightning: "https://archives.bulbagarden.net/media/upload/thumb/0/04/Lightning-attack.png/30px-Lightning-attack.png",
-    Psychic: "https://archives.bulbagarden.net/media/upload/thumb/e/ef/Psychic-attack.png/30px-Psychic-attack.png",
-    Fighting: "https://archives.bulbagarden.net/media/upload/thumb/4/48/Fighting-attack.png/30px-Fighting-attack.png",
-    Darkness: "https://archives.bulbagarden.net/media/upload/thumb/a/ab/Darkness-attack.png/30px-Darkness-attack.png",
-    Metal: "https://archives.bulbagarden.net/media/upload/thumb/6/64/Metal-attack.png/30px-Metal-attack.png",
-    Fairy: "https://archives.bulbagarden.net/media/upload/thumb/4/40/Fairy-attack.png/30px-Fairy-attack.png",
-    Dragon: "https://archives.bulbagarden.net/media/upload/thumb/8/8a/Dragon-attack.png/30px-Dragon-attack.png",
-    Colorless: "https://archives.bulbagarden.net/media/upload/thumb/1/1d/Colorless-attack.png/30px-Colorless-attack.png",
-    Rainbow: "https://archives.bulbagarden.net/media/upload/d/dd/Rainbow-attack.png"
-  };
-
-  let types = [];
-
-  if (typeText.startsWith("Dual ")) {
-    types = typeText.replace("Dual ", "").split("/");
-  } else {
-    types = [typeText];
-  }
-
-  return `
-  <div class="type-wrapper">
-    ${types
-      .map(type => {
-        const src = typeIcons[type.trim()];
-        return src
-          ? `<img src="${src}" alt="${type}" title="${type}" style="height: 16px;" />`
-          : type;
-      })
-      .join("")}
-  </div>
-`;
-}
-
   const handleSearch = () => {
-  const trimmedInput = searchInput.trim().toLowerCase();
+  // 1) Work with a local snapshot of what the user typed (avoids async setState timing)
+  const committed = searchInput.trim();
+  const trimmedInput = committed.toLowerCase();
   if (!trimmedInput) {
     setFilteredData([]);
+    setConfirmedSearchInput("");
+    setConfirmedSearchField(searchField);
+    setActiveSearch("");        // committed term for UI
+    setSearchPerformed(true);   // still mark as performed to clear previous results
     return;
   }
 
+  // 2) Filtering (unchanged logic, just using local trimmedInput)
   const IGNORE_SUFFIXES = [
     "(E)", "(P)", "(A)", "(WC)", "(TK)", "(BA)", "(Classic Collection)", 
     "(Trainer Gallery)", "(ToT)", "(PPPP)", "(Galarian Gallery)", "(Shiny Vault)"
@@ -702,7 +1176,6 @@ function renderTypeWithSymbols(typeText) {
       }
       const baseFieldValue = stripSuffix(fieldValue);
       const baseInput = stripSuffix(trimmedInput);
-
       return baseFieldValue === baseInput;
     }
 
@@ -710,93 +1183,95 @@ function renderTypeWithSymbols(typeText) {
     return fieldValue === trimmedInput;
   });
 
-    if (searchField === "Expansion") {
-  const normalizedInput = searchInput.toLowerCase().trim();
-  const skipSortExpansions = ["celebrations"];
+  if (searchField === "Expansion") {
+    const normalizedInput = trimmedInput;
+    const skipSortExpansions = ["celebrations"];
+    const shouldSkipSort = skipSortExpansions.some(name => normalizedInput.startsWith(name));
 
-  const shouldSkipSort = skipSortExpansions.some(name => normalizedInput.startsWith(name));
+    if (!shouldSkipSort) {
+      filtered = filtered.map((item, index) => ({ ...item, __index: index }));
 
-  if (!shouldSkipSort) {
-    filtered = filtered.map((item, index) => ({ ...item, __index: index }));
+      filtered.sort((a, b) => {
+        const aRaw = a["Set number"] || "";
+        const bRaw = b["Set number"] || "";
 
-    filtered.sort((a, b) => {
-  const aRaw = a["Set number"] || "";
-  const bRaw = b["Set number"] || "";
+        const rangeRegex = /^([A-Z]+)?(\d+)-(\d+)$/i;
+        const singleRegex = /^([A-Z]+)?(\d{1,4})$/i;
 
-  const rangeRegex = /^([A-Z]+)?(\d+)-(\d+)$/i;
-  const singleRegex = /^([A-Z]+)?(\d{1,4})$/i;
+        const aRange = aRaw.match(rangeRegex);
+        const bRange = bRaw.match(rangeRegex);
+        const aSingle = aRaw.match(singleRegex);
+        const bSingle = bRaw.match(singleRegex);
 
-  const aRange = aRaw.match(rangeRegex);
-  const bRange = bRaw.match(rangeRegex);
-  const aSingle = aRaw.match(singleRegex);
-  const bSingle = bRaw.match(singleRegex);
+        // Range vs. Single
+        if (aRange && bSingle) {
+          const aPrefix = aRange[1] || "";
+          const aEnd = parseInt(aRange[3], 10);
+          const bPrefix = bSingle[1] || "";
+          const bNum = parseInt(bSingle[2], 10);
 
-  // Range vs. Single
-  if (aRange && bSingle) {
-    const aPrefix = aRange[1] || "";
-    const aEnd = parseInt(aRange[3], 10);
-    const bPrefix = bSingle[1] || "";
-    const bNum = parseInt(bSingle[2], 10);
+          const prefixCompare = aPrefix.toUpperCase().localeCompare(bPrefix.toUpperCase());
+          if (prefixCompare !== 0) return prefixCompare;
 
-    const prefixCompare = aPrefix.toUpperCase().localeCompare(bPrefix.toUpperCase());
-    if (prefixCompare !== 0) return prefixCompare;
+          return aEnd - bNum + 1; // place range after single
+        }
 
-    return aEnd - bNum + 1; // place range after single
+        if (aSingle && bRange) {
+          const aPrefix = aSingle[1] || "";
+          const aNum = parseInt(aSingle[2], 10);
+          const bPrefix = bRange[1] || "";
+          const bEnd = parseInt(bRange[3], 10);
+
+          const prefixCompare = aPrefix.toUpperCase().localeCompare(bPrefix.toUpperCase());
+          if (prefixCompare !== 0) return prefixCompare;
+
+          return aNum - bEnd - 1; // place range after single
+        }
+
+        // Both ranges
+        if (aRange && bRange) {
+          const aPrefix = aRange[1] || "";
+          const aStart = parseInt(aRange[2], 10);
+          const bPrefix = bRange[1] || "";
+          const bStart = parseInt(bRange[2], 10);
+
+          const prefixCompare = aPrefix.toUpperCase().localeCompare(bPrefix.toUpperCase());
+          if (prefixCompare !== 0) return prefixCompare;
+
+          return aStart - bStart;
+        }
+
+        // Both singles
+        if (aSingle && bSingle) {
+          const aPrefix = aSingle[1] || "";
+          const aNum = parseInt(aSingle[2], 10);
+          const bPrefix = bSingle[1] || "";
+          const bNum = parseInt(bSingle[2], 10);
+
+          const prefixCompare = aPrefix.toUpperCase().localeCompare(bPrefix.toUpperCase());
+          if (prefixCompare !== 0) return prefixCompare;
+
+          return aNum - bNum;
+        }
+
+        // Fallback
+        return aRaw.localeCompare(bRaw, undefined, { numeric: true });
+
+        // NOTE: you had a stray "return a.__index - b.__index;" below here — keep it removed
+      });
+
+      filtered = filtered.map(({ __index, ...rest }) => rest);
+    }
   }
 
-  if (aSingle && bRange) {
-    const aPrefix = aSingle[1] || "";
-    const aNum = parseInt(aSingle[2], 10);
-    const bPrefix = bRange[1] || "";
-    const bEnd = parseInt(bRange[3], 10);
-
-    const prefixCompare = aPrefix.toUpperCase().localeCompare(bPrefix.toUpperCase());
-    if (prefixCompare !== 0) return prefixCompare;
-
-    return aNum - bEnd - 1; // place range after single
-  }
-
-  // Both ranges
-  if (aRange && bRange) {
-    const aPrefix = aRange[1] || "";
-    const aStart = parseInt(aRange[2], 10);
-    const bPrefix = bRange[1] || "";
-    const bStart = parseInt(bRange[2], 10);
-
-    const prefixCompare = aPrefix.toUpperCase().localeCompare(bPrefix.toUpperCase());
-    if (prefixCompare !== 0) return prefixCompare;
-
-    return aStart - bStart;
-  }
-
-  // Both singles
-  if (aSingle && bSingle) {
-    const aPrefix = aSingle[1] || "";
-    const aNum = parseInt(aSingle[2], 10);
-    const bPrefix = bSingle[1] || "";
-    const bNum = parseInt(bSingle[2], 10);
-
-    const prefixCompare = aPrefix.toUpperCase().localeCompare(bPrefix.toUpperCase());
-    if (prefixCompare !== 0) return prefixCompare;
-
-    return aNum - bNum;
-  }
-
-  // Fallback to lexicographic sort
-  return aRaw.localeCompare(bRaw, undefined, { numeric: true });
-
-      return a.__index - b.__index;
-    });
-
-    filtered = filtered.map(({ __index, ...rest }) => rest);
-  }
-}
-
-  setConfirmedSearchInput(searchInput.trim());
+  // 3) Commit everything atomically: data first → then “performed” flag → and UI labels
+  setFilteredData(filtered);            // must be BEFORE setSearchPerformed(true)
+  setActiveSearch(committed);           // keep a committed term for measuring/UI
+  setConfirmedSearchInput(committed);   // for visible labels / CSV filename
   setConfirmedSearchField(searchField);
-  setFilteredData(filtered);
-  setSearchPerformed(true);
-}
+  setSearchPerformed(true);             // triggers measuring effect AFTER table renders
+};
+
 
 const handleDownloadCSV = () => {
   if (!filteredData.length) {
@@ -876,255 +1351,393 @@ const minWidths = [
         margin: 0;
         padding: 0;
         height: 100%;
-        overflow-x: hidden;
-        overflow: hidden; /* prevent body scroll which causes double scrollbars */
+        overflow: hidden;
+        font-family: system-ui, sans-serif;
+        background-color: white;
         color: #000;
-        background-color: #fff;
-        font-family: var(--font-geist-sans, system-ui, sans-serif);
-      }
-      td {
-        color: inherit; /* ensure table cells don't override it */
       }
 
-      .search-bar-wrapper {
-        display: flex;
-        align-items: center;
-        z-index: 1001;
-        justify-content: flex-start;
-        padding: 20px 16px;
-        height: 60px; /* adjust as needed */
-        overflow-y: hidden;
-      }
-        @media (max-width: 600px) {
-      .search-bar-wrapper {
-        flex-wrap: wrap;
-        gap: 12px;
-        height: auto;
-        padding: 12px;
-      }
+      /* ✅ STICKY: wraps all controls */
+      /* ---------- TOP BAR: single-line, no wrap, no horizontal scroll ---------- */
+.sticky-top-container {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  isolation: isolate;
+  contain: paint;
+  backface-visibility: hidden;
 
-      .search-bar-wrapper > * {
-        flex: 1 1 100%;
-      }
-    }
-       .table-container {
-          height: 100vh;
-          overflow-y: auto;
-          overflow-x: hidden;
-          padding-bottom: 1px;
-          padding-right: 8px;
-          box-sizing: border-box;
-          background-color: white;
-        }
+  /* single-line behavior */
+  display: flex;
+  align-items: center;    /* vertical centering of controls */
+  justify-content: flex-start;
+  gap: 12px;
 
-      .sticky-top-container {
+  /* keep it visually stable — allow flexible shrinking but keep a baseline */
+  min-height: 64px;       /* ensures enough vertical space for images */
+  padding: 0 16px;        /* horizontal padding only (no vertical padding) */
+  margin-right: -8px;
+
+  /* prevent the top-bar itself from causing page horizontal scroll */
+  left: 0;
+  right: 0;
+  width: auto;
+  box-sizing: border-box;
+  overflow: visible;      /* children will be truncated, not clipped */
+}
+
+/* Force one row: children do not wrap */
+.search-bar-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: nowrap;      /* CRITICAL: prevent wrapping to new lines */
   width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
-  overflow-y: hidden;
-  margin-left: 0;
+  box-sizing: border-box;
+  white-space: nowrap;    /* ensure text nodes don't wrap inside children */
+  overflow: visible;
 }
 
-/* 🧠 Only apply layout trick on mobile to stretch edge-to-edge */
-@media (max-width: 600px) {
-  .sticky-top-container {
-    width: 100vw;
-    max-width: 100vw;
-    margin-left: calc(-50vw + 50%);
-  }
+/* By default, prevent children from auto-growing to push layout */
+.sticky-top-container > *,
+.search-bar-wrapper > * {
+  flex: 0 0 auto;         /* do not grow; shrink if necessary */
+  min-width: 0;           /* allow children to shrink below their content width */
 }
 
+/* Make the text input flexible so it can take remaining space but also shrink */
+.search-bar-wrapper input[type="text"] {
+  flex: 1 1 auto;             /* ✅ flexible: takes leftover space */
+  min-width: 160px;           /* ✅ can shrink reasonably */
+  max-width: none;            /* ✅ no artificial ceiling */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-        .table-scroll-wrapper {
-          overflow-x: auto;
-          max-width: 100vw;
-        }
+/* Select and buttons should be compact but shrink if needed */
+.search-bar-wrapper select,
+.search-bar-wrapper button {
+  flex: 0 1 auto;
+  min-width: 40px;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-        table {
-          border-collapse: collapse;
-          min-width: 100%;
-          table-layout: fixed; /* ✅ forces column widths */
-          font-size: 14px;
-          white-space: nowrap;
-          max-width: 100%;
-        }
+/* Badge / small status items (usedAbbreviations, latestRelease etc.) */
+.sticky-top-container > div,
+.search-bar-wrapper > div {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-        thead th {
-          position: sticky;
-          top: 62px;
-          background-color: #f0f0f0;
-          z-index: 25; /* On top of sticky-top-container */
-          box-shadow: inset 0 -2px 0 #999; /* Acts like bottom border */
-          border-bottom: none; /* Prevents overlap issues */
-          box-shadow: inset -1px 0 0 #999, inset 0 -2px 0 #999;
-          padding: 4px 8px;
-          text-align: left;
-          height: 30px; /* 👈 ensure consistent height (adjust if needed) */
-        }
+/* Image sizing: always fill the top-bar vertical space without stretching horizontally */
+.sticky-top-container img,
+.search-bar-wrapper img {
+  height: 60px !important;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  flex: 0 0 auto;
+  margin: 2px 0;              /* ✅ Adds vertical margin */
+}
 
-        tbody td {
+/* If you have a container that wraps the image (like we used), ensure it doesn't force extra height */
+.sticky-top-container .img-wrapper,
+.search-bar-wrapper .img-wrapper {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  flex: 0 0 auto;
+}
+
+/* Small safety: prevent the top-level body from producing a horizontal scrollbar due to the top bar */
+html, body {
+  box-sizing: border-box;
+  overflow-x: hidden;    /* optional: hides any accidental page-level horizontal overflow */
+}
+
+      /* ✅ Scrollable area for table */
+      .table-container {
+        height: 100vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        background-color: white;
+        padding-right: 8px;
+      }
+
+      /* ✅ Prevent horizontal overflow */
+      .table-scroll-wrapper {
+        overflow-x: visible;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      /* ✅ Table styles */
+      table {
+        width: 100%;
+        max-width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        font-size: 14px;
+        white-space: nowrap;
+      }
+
+      /* ✅ Sticky table header */
+      thead th {
+        position: sticky;
+        top: 64px; /* Adjust this if sticky-top-container changes height */
+        background-color: #f0f0f0;
+        z-index: 25;
+        padding: 4px 8px;
+        height: 30px;
+        margin-right: -8px;
+        box-shadow: inset -1px 0 0 #999, inset 0 -2px 0 #999;
+        text-align: left;
+      }
+
+      /* ✅ Table cells */
+      tbody td {
         border-bottom: 1px solid #ddd;
         box-shadow: inset -1px 0 0 #eee;
         padding: 4px 8px;
         text-align: left;
         max-width: 100%;
       }
-        tbody tr:hover {
-          background-color: #eee;
-        }
-        .empty-cell {
-          background-color: #e2e2e2;
-          color: transparent;
-        }
-        td.notes {
-  width: auto; /* Important: let it stretch */
-}
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-td:nth-child(1), /* Series */
-td:nth-child(2), /* Expansion */
-td:nth-child(3), /* Card Name */
-td:nth-child(4)  /* Set Number */ {
-  width: var(--col-width-0);
-  max-width: var(--col-width-0);
-  white-space: nowrap;
-  overflow: visible;
-  text-overflow: unset;
-  padding: 4px 8px;
-}
 
-td:nth-child(5) { width: var(--col-width-4); }  /* Rarity */
-td:nth-child(6) { width: var(--col-width-5); }  /* Category */
-td:nth-child(7) { width: var(--col-width-6); }  /* Type */
-td:nth-child(8) { width: var(--col-width-7); }  /* Variant */
-td:nth-child(9) {
-  width: var(--col-width-8);
-  text-align: right;
-}
+      .table-layer {
+        /* Keep the table in its own raster/compositing box */
+        contain: layout paint size;
+        backface-visibility: hidden;
+        transform: translateZ(0);
+        will-change: transform;
+      }
 
-td:nth-child(10) { /* Notes column */
-  width: var(--col-width-9);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+      tbody tr:hover {
+        background-color: #eee;
+      }
 
-        td.setNumber {
-          text-align: right;
-        }
-        td.setNumber,
-        td.rarity,
-        td.series,
-        td.category,
-        td.type,
-        td.variant,
-        td.release {
-          max-width: none;
-          overflow: visible;
-          text-overflow: unset;
-          vertical-align: middle;
-        }
-        td.expansion {
-          padding: 4px 12px; /* increase right padding */
-        }
-        td.type {
-          padding: 4px 8px;
-          vertical-align: middle; /* keep row alignment consistent */
-        }
+      td.notes {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
 
-        td.type .type-wrapper {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          gap: 4px;
-          height: 100%;
-        }
-        .set-symbol {
-          height: 1em; /* scale with font size */
-          vertical-align: middle;
-          margin-right: 0.375em; /* 6px @ 16px font */
-          display: inline-block;
-        }
-          .inline-symbol {
-          height: 1em;
-          width: auto; /* Maintain natural aspect ratio */
-          vertical-align: middle;
-          display: inline-block;
-          margin-right: 0.25em; /* Spacing between symbol and text */
-        }
+      button.pressed {
+        transform: scale(0.96);
+        background-color: #ececec;
+        transition: all 0.12s ease;
+      }
 
-        .card-name-measure-wrapper {
-          position: absolute;
-          visibility: hidden;
-          white-space: nowrap;
-          font-size: 14px;
-          font-family: inherit;
-          padding: 4px 8px;
-          display: inline-block;
-        }
+      /* ✅ Column-specific widths */
+      td:nth-child(1),
+      td:nth-child(2),
+      td:nth-child(3),
+      td:nth-child(4) {
+        width: var(--col-width-0);
+        max-width: var(--col-width-0);
+        white-space: nowrap;
+        overflow: visible;
+        text-overflow: unset;
+      }
 
-        .card-name-measure-wrapper img.inline-symbol {
-          height: 1em;
-          margin-right: 0.25em;
-          vertical-align: middle;
-        }
-          select,
-          input[type="text"] {
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            padding: 6px 8px;
-            font-size: 14px;
-            background-color: white;
-            outline: none;
-            box-shadow: none;
-            transition: border-color 0.2s ease;
-          }
+      td:nth-child(5) { width: var(--col-width-4); }
+      td:nth-child(6) { width: var(--col-width-5); }
+      td:nth-child(7) { width: var(--col-width-6); }
+      td:nth-child(8) { width: var(--col-width-7); }
+      td:nth-child(9) {
+        width: var(--col-width-8);
+        text-align: right;
+      }
+      td:nth-child(10) {
+        width: var(--col-width-9);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
 
-          select:focus,
-          input[type="text"]:focus {
-            border-color: #0070f3;
-          }
-            button {
-              padding: 6px 14px;
-              background-color: #f5f5f5;
-              border: 1px solid #ccc;
-              border-radius: 5px;
-              font-size: 14px;
-              font-weight: 500;
-              cursor: pointer;
-              box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.15);
-              transition: all 0.1s ease-in-out;
-            }
+      /* ✅ Alignment helpers */
+      td.setNumber {
+        text-align: right;
+      }
+      td.expansion {
+        padding: 4px 12px;
+      }
+      td.type .type-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 4px;
+        height: 100%;
+      }
 
-            button:hover {
-              background-color: #eaeaea;
-            }
+      /* ✅ Symbol rendering */
+      .set-symbol,
+      .inline-symbol {
+        height: 1em;
+        vertical-align: middle;
+        display: inline-block;
+      }
+      .inline-symbol {
+        width: auto;
+        margin-right: 0.25em;
+      }
+      .set-symbol {
+        margin-right: 0.375em;
+      }
 
-            button:active {
-              box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.2);
-              transform: translateY(1px);
-            }
+      /* ✅ Invisible card measurement span */
+      .card-name-measure-wrapper {
+        position: absolute;
+        visibility: hidden;
+        white-space: nowrap;
+        font-size: 14px;
+        font-family: inherit;
+        padding: 4px 8px;
+        display: inline-block;
+      }
+
+      /* ✅ Inputs and buttons */
+      input[type="text"],
+      select {
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 6px 8px;
+        font-size: 14px;
+        background-color: white;
+        outline: none;
+        transition: border-color 0.2s ease;
+      }
+      input[type="text"]:focus,
+      select:focus {
+        border-color: #0070f3;
+      }
+
+      button {
+        padding: 6px 14px;
+        background-color: #f5f5f5;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.15);
+        transition: all 0.1s ease-in-out;
+      }
+      button:hover {
+        background-color: #eaeaea;
+      }
+      button:active {
+        box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.2);
+        transform: translateY(1px);
+      }
 
       `}</style>
 
 <div className="table-container" ref={containerRef}>
-    <div className="table-scroll-wrapper">
   <div className="sticky-top-container"> 
-    <div className="search-bar-wrapper" style={{ position: "relative" }}>
+    <div className="search-bar-wrapper" >
 
   <label htmlFor="field-select" style={{ marginRight: "8px" }}>Create for:</label>
 
-<select
-  id="field-select"
-  value={searchField}
-  onChange={(e) => setSearchField(e.target.value)}
-  style={{ marginRight: "12px" }}
+<div
+  ref={dropdownToggleRef}
+  style={{
+    position: "relative", // ✅ anchors the absolutely positioned dropdown
+    userSelect: "none",
+    display: "inline-block", // ✅ ensures dropdown width aligns with trigger
+  }}
 >
-  <option value="Card Name">Pokémon</option>
-  <option value="Expansion">Expansion</option>
-</select>
+
+  <div
+    onClick={() => {
+  const rect = dropdownToggleRef.current?.getBoundingClientRect();
+  if (rect) {
+    setFieldDropdownPos({
+      top: rect.bottom + window.scrollY + 2,
+      left: rect.left + window.scrollX,
+      width: rect.width
+    });
+  }
+  setShowFieldDropdown((prev) => !prev);
+}}
+
+    style={{
+      padding: "8px 12px",
+      fontSize: "14px",
+      lineHeight: 1.5,
+      height: "32px",
+      width: "110px",
+      border: "1px solid #ccc",
+      borderRadius: "4px",
+      backgroundColor: "white",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      whiteSpace: "nowrap",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+    }}
+  >
+    {searchField}
+    <span style={{ marginLeft: "6px", fontSize: "10px" }}>▼</span>
+  </div>
+
+  {showFieldDropdown &&
+  ReactDOM.createPortal(
+    <div
+      ref={fieldMenuRef}
+      style={{
+        position: "absolute",
+        top: fieldDropdownPos.top,
+        left: fieldDropdownPos.left,
+        zIndex: 99999,
+        border: "1px solid #ccc",
+        borderRadius: "4px",
+        marginTop: 0,
+        backgroundColor: "white",
+        boxShadow: "0 4px 8px rgba(0,0,0,0.08)",
+        width: fieldDropdownPos.width,
+        boxSizing: "border-box",
+      }}
+    >
+      {["Card Name", "Expansion"].map((field, i, arr) => (
+        <div
+          key={field}
+          onClick={() => {
+            setSearchField(field);
+            setShowFieldDropdown(false);
+          }}
+          style={{
+            padding: "8px 12px",
+            fontSize: "14px",
+            cursor: "pointer",
+            borderBottom: i !== arr.length - 1 ? "1px solid #eee" : "none",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {field}
+        </div>
+      ))}
+    </div>,
+    document.getElementById("floating-suggestions-root")
+  )
+}
+
+</div>
 
 {/* 🧠 Wrap just input and dropdown in their own positioning block */}
 <div style={{ position: "relative", display: "inline-block" }}>
@@ -1136,107 +1749,144 @@ td:nth-child(10) { /* Notes column */
   const value = e.target.value;
   setSearchInput(value);
 
-  if (searchField === "Expansion" && value.length >= 2) {
-    const matches = expansionSuggestions.filter((exp) =>
-      exp.toLowerCase().includes(value.toLowerCase())
+  clearTimeout(debounceRef.current);
+
+  // If not enough characters, hide suggestions (for both modes)
+  if (value.length < 2) {
+    debounceRef.current = setTimeout(() => {
+      setSuggestions({ list: [], visible: false });
+    }, 150);
+    return;
+  }
+
+  // 🔹 Expansion suggestions (unchanged)
+  if (searchField === "Expansion") {
+    debounceRef.current = setTimeout(() => {
+      const lower = value.toLowerCase();
+      const matches = expansionSuggestions.filter((exp) =>
+        exp.toLowerCase().includes(lower)
+      );
+
+      setSuggestions({ list: matches, visible: true });
+      setHighlightIndex(matches.length > 0 ? 0 : -1);
+    }, 150);
+    return;
+  }
+
+  // 🔹 Card Name suggestions — from static species list
+  if (searchField === "Card Name") {
+    debounceRef.current = setTimeout(() => {
+      const lower = value.toLowerCase();
+
+      const matches = pokemonNameSuggestions.filter((name) =>
+        name.toLowerCase().includes(lower)
+      );
+
+      setSuggestions({ list: matches, visible: true });
+      setHighlightIndex(matches.length > 0 ? 0 : -1);
+    }, 150);
+    return;
+  }
+
+  // Any other field → no suggestions
+  setSuggestions({ list: [], visible: false });
+}}
+
+onKeyDown={(e) => {
+  if (!suggestions.visible || suggestions.list.length === 0) {
+  if (e.key === "Enter") {
+    handleSearch();
+
+    // NEW: trigger the visual button press
+    if (generateButtonRef.current) {
+      generateButtonRef.current.classList.add("pressed");
+      setTimeout(() => {
+        generateButtonRef.current.classList.remove("pressed");
+      }, 150); // matches the click highlight duration
+    }
+  }
+  return;
+}
+
+  if (e.key === "ArrowDown") {
+    e.preventDefault();
+    setHighlightIndex(prev =>
+      prev + 1 < suggestions.list.length ? prev + 1 : 0
     );
-    setMatchingSuggestions(matches);
-    setShowSuggestions(true);
-  } else {
-    setMatchingSuggestions([]);
-    setShowSuggestions(false);
+  }
+
+  if (e.key === "ArrowUp") {
+    e.preventDefault();
+    setHighlightIndex(prev =>
+      prev - 1 >= 0 ? prev - 1 : suggestions.list.length - 1
+    );
+  }
+
+  if (e.key === "Enter") {
+    e.preventDefault();
+    // Select highlighted suggestion
+    const selected = suggestions.list[highlightIndex];
+    if (selected) {
+      handleSelectSuggestion(selected);
+      setSuggestions({ list: [], visible: false });
+    }
   }
 }}
 
     placeholder={`Enter exact ${searchField}`}
-    style={{ marginRight: "12px", padding: "4px" }}
-    onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
+    style={{ marginRight: "12px", padding: "8px 12px", height: "32px" }}
+    onBlur={() => setTimeout(() => setSuggestions({ list: [], visible: false }), 100)}
   />
 
-  {showSuggestions && matchingSuggestions.length > 0 &&
-  ReactDOM.createPortal(
-    <ul style={{
-      position: "absolute",
-      top: `${dropdownTop}px`,
-      left: `${dropdownLeft}px`,
-      zIndex: 99999,
-      backgroundColor: "white",
-      border: "1px solid #ccc",
-      borderRadius: "4px",
-      marginTop: "2px",
-      listStyle: "none",
-      padding: 0,
-      maxHeight: "150px",
-      overflowY: "auto",
-      width: inputRef.current?.offsetWidth || "200px",
-      fontSize: "14px",
-      fontFamily: "inherit",
-      boxSizing: "border-box",
-    }}>
-      {matchingSuggestions.map((suggestion, index) => (
-        <li
-          key={index}
-          onClick={() => {
-            setSearchInput(suggestion);
-            setShowSuggestions(false);
-          }}
-          style={{
-            padding: "4px 8px",
-            margin: 0,
-            lineHeight: "1.5",
-            cursor: "pointer",
-            borderBottom: "1px solid #eee"
-          }}
-        >
-          {suggestion}
-        </li>
-      ))}
-    </ul>,
-    document.getElementById("floating-suggestions-root")
-  )
-}
+  <SuggestionList
+  visible={suggestions.visible}
+  list={suggestions.list}
+  position={suggestionPos}
+  onSelect={handleSelectSuggestion}
+  highlightIndex={highlightIndex}
+/>
 
 </div>
 
-<button onClick={handleSearch}>Generate</button>
+<button
+  ref={generateButtonRef}
+  onClick={handleSearch}
+>
+  Generate
+</button>
 
-{searchPerformed && confirmedSearchField === "Expansion" && confirmedSearchInput && (
-  <div style={{
-    height: "36px",
-    marginLeft: "12px",
-    display: "flex",
-    alignItems: "center"
-  }}>
-    <img
-      src={getLogoForExpansion(confirmedSearchInput)}
-      alt={`${confirmedSearchInput} logo`}
-      style={{
-        height: "100%",
-        maxWidth: "200px",
-        objectFit: "contain"
-      }}
-    />
-  </div>
-)}
-
-{searchPerformed && confirmedSearchField === "Card Name" && pokemonId && (
+{searchPerformed && (
   <div style={{
     height: "64px",
     marginLeft: "12px",
     display: "flex",
     alignItems: "center"
   }}>
-    <img
-      src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonId}.png`}
-      alt={confirmedSearchInput}
-      style={{
-        height: "100%",
-        objectFit: "contain"
-      }}
-      onError={(e) => {
-        e.target.style.display = "none"; // Hide if not found
-      }}
-    />
+    {confirmedSearchField === "Expansion" && confirmedSearchInput && (
+      <img
+        src={getLogoForExpansion(confirmedSearchInput)}
+        alt={`${confirmedSearchInput} logo`}
+        style={{
+          height: "100%",
+          maxWidth: "200px",
+          objectFit: "contain"
+        }}
+      />
+    )}
+
+    {confirmedSearchField === "Card Name" && pokemonId && (
+      <img
+        src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonId}.png`}
+        alt={confirmedSearchInput}
+        style={{
+          height: "100%",
+          objectFit: "contain"
+        }}
+        onError={(e) => {
+          e.target.style.display = "none";
+        }}
+      />
+    )}
   </div>
 )}
 
@@ -1336,6 +1986,8 @@ td:nth-child(10) { /* Notes column */
 
   </div>
 </div>
+    <div className="table-scroll-wrapper">
+  
 {showReportForm && (
   <div style={{
     position: "absolute",
@@ -1366,120 +2018,17 @@ td:nth-child(10) { /* Notes column */
 )}
 
         {searchPerformed && (
-  <table ref={tableRef}>
-    <colgroup>
-      {[...Array(10)].map((_, i) => (
-        <col
-          key={i}
-          style={{
-            width: `var(--col-width-${i})`,
-            minWidth: `${minWidths[i]}px`,
-          }}
-        />
-      ))}
-    </colgroup>
-    <thead>
-      <tr>
-        <th>Series</th>
-        <th>Expansion</th>
-        <th>Card Name</th>
-        <th>Set Number</th>
-        <th>Rarity</th>
-        <th>Category</th>
-        <th>Type</th>
-        <th>Variant</th>
-        <th>Release</th>
-        <th>Notes</th>
-      </tr>
-    </thead>
-    <tbody>
-      {filteredData.map((row, i) => {
-        const setNumber = (row["Set number"] || "") + (row["Set size"] || "");
 
-        const isEmpty = (value) =>
-          !value || value.toString().trim().length === 0;
-
-        const renderCell = (value, className = "") => {
-          if (isEmpty(value)) {
-            return (
-              <td className={`empty-cell ${className}`} key={Math.random()}>
-                {"\u00A0"}
-              </td>
-            );
-          }
-          return (
-            <td className={className} key={Math.random()}>
-              {value}
-            </td>
-          );
-        };
-
-        const rawExpansion = row["Expansion"] || "";
-
-        return (
-          <tr key={i}>
-            {renderCell(row["Series"], "series")}
-            <td className="expansion">
-              {getSymbolsForExpansion(rawExpansion).map((url, j) => (
-                <img
-                  key={j}
-                  src={url}
-                  alt={`${rawExpansion} symbol`}
-                  className="set-symbol"
-                />
-              ))}
-              {rawExpansion}
-            </td>
-            {(() => {
-              const cardName = row["Card Name"] || "";
-              const series = (row["Series"] || "").toLowerCase();
-              const lowerName = cardName.toLowerCase();
-
-              const skipCGVSymbols =
-                lowerName === "unown c" ||
-                lowerName === "unown g" ||
-                (lowerName === "unown v" && !series.includes("sw&sh"));
-
-              return (
-                <td
-                  className="card-name"
-                  data-html={DOMPurify.sanitize(
-                    renderCardNameWithSymbols(cardName, row, { skipCGVSymbols })
-                  )}
-                >
-                  <span
-                    dangerouslySetInnerHTML={{
-                      __html: DOMPurify.sanitize(
-                        renderCardNameWithSymbols(cardName, row, {
-                          skipCGVSymbols,
-                        })
-                      ),
-                    }}
-                  />
-                </td>
-              );
-            })()}
-            {renderCell(setNumber, "setNumber")}
-            {renderCell(row["Rarity"], "rarity")}
-            {renderCell(row["Category"], "category")}
-            <td className="type">
-              <span
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(
-                    renderTypeWithSymbols(row["Type"])
-                  ),
-                }}
-              />
-            </td>
-            {renderCell(row["Variant"], "variant")}
-            {renderCell(row["Release"], "release")}
-            {renderCell(row["Notes"], "notes")}
-          </tr>
-        );
-      })}
-    </tbody>
-  </table>
+  <CardTable
+    displayedData={displayedData}
+    confirmedSearchInput={confirmedSearchInput}
+    confirmedSearchField={confirmedSearchField}
+    tableRef={tableRef}
+    columnCount={columnCount}
+    minWidths={minWidths}
+  />
 )}
+
         </div>
       </div>
       <div id="measure-container" style={{
