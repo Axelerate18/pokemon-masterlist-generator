@@ -3,10 +3,15 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
+    // Normalize private key for both local and Vercel
+    const privateKey = process.env.GOOGLE_PRIVATE_KEY
+      .replace(/\\n/g, '\n')     // for escaped \n (local dev)
+      .replace(/\r?\n/g, '\n');  // ensure proper formatting (Vercel)
+
     const auth = new google.auth.JWT(
       process.env.GOOGLE_CLIENT_EMAIL,
       null,
-      process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+      privateKey,
       ["https://www.googleapis.com/auth/spreadsheets.readonly"]
     );
 
@@ -14,10 +19,11 @@ export async function GET() {
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: "Data",
+      range: "Data!A:Z", // safer: explicitly read all columns
     });
 
     const rows = response.data.values;
+
     if (!rows || rows.length === 0) {
       return NextResponse.json([]);
     }
@@ -32,8 +38,10 @@ export async function GET() {
     });
 
     return NextResponse.json(data);
+
   } catch (error) {
     console.error("Google Sheets API error:", error);
     return NextResponse.json({ error: "Failed to load data" }, { status: 500 });
   }
 }
+
