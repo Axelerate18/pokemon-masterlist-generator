@@ -19,7 +19,7 @@ export async function GET() {
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: "Data!A:Z", // safer: explicitly read all columns
+      range: "Data!A:Z",
     });
 
     const rows = response.data.values;
@@ -44,4 +44,5 @@ export async function GET() {
     return NextResponse.json({ error: "Failed to load data" }, { status: 500 });
   }
 }
+
 
