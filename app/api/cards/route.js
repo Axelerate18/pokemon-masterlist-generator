@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    // Authenticate using your service account
     const auth = new google.auth.JWT(
       process.env.GOOGLE_CLIENT_EMAIL,
       null,
@@ -15,7 +14,7 @@ export async function GET() {
 
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: "Data", // Your actual sheet name
+      range: "Data",
     });
 
     const rows = response.data.values;
@@ -23,7 +22,6 @@ export async function GET() {
       return NextResponse.json([]);
     }
 
-    // Convert rows (arrays) into objects using the first row as keys
     const headers = rows[0];
     const data = rows.slice(1).map((row) => {
       const obj = {};
