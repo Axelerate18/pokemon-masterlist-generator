@@ -1,23 +1,41 @@
-import { NextResponse } from 'next/server';
-import Papa from 'papaparse';
+import { google } from "googleapis";
+import { NextResponse } from "next/server";
 
 export async function GET() {
-  const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRcbbI3WUWbmjXYay0BQKF7wJ5kR8RoHIXQoUbH4yWSzySeGib6VGtx_xSp7BLnVuF_7oOrnYi_sJfh/pub?gid=0&single=true&output=csv';
-
   try {
-    const res = await fetch(csvUrl);
-    if (!res.ok) throw new Error(`Failed to fetch CSV: ${res.status}`);
+    // Authenticate using your service account
+    const auth = new google.auth.JWT(
+      process.env.GOOGLE_CLIENT_EMAIL,
+      null,
+      process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+      ["https://www.googleapis.com/auth/spreadsheets.readonly"]
+    );
 
-    const text = await res.text();
+    const sheets = google.sheets({ version: "v4", auth });
 
-    const { data } = Papa.parse(text, {
-      header: true,
-      skipEmptyLines: true,
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: process.env.GOOGLE_SHEET_ID,
+      range: "Data", // Your actual sheet name
+    });
+
+    const rows = response.data.values;
+    if (!rows || rows.length === 0) {
+      return NextResponse.json([]);
+    }
+
+    // Convert rows (arrays) into objects using the first row as keys
+    const headers = rows[0];
+    const data = rows.slice(1).map((row) => {
+      const obj = {};
+      headers.forEach((header, index) => {
+        obj[header] = row[index] ?? "";
+      });
+      return obj;
     });
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Error fetching or parsing CSV:', error);
-    return NextResponse.json({ error: 'Failed to load data' }, { status: 500 });
+    console.error("Google Sheets API error:", error);
+    return NextResponse.json({ error: "Failed to load data" }, { status: 500 });
   }
 }

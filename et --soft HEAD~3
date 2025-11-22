@@ -1,0 +1,43 @@
+[33m30f6c5d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Remove leaked service account key
+[33m2ce91f1[m Remove leaked service account key
+[33mfe588d9[m Privacy and security improvements
+[33mc4dd537[m[33m ([m[1;31morigin/main[m[33m)[m Massive QOL update
+[33mc875a48[m UI updates
+[33m87755b6[m sorting fix
+[33m31ab9da[m sorting fix
+[33m6abdf8e[m sorting fix
+[33ma57feb7[m sorting fix
+[33m0856cae[m sorting fix
+[33m2854eb7[m sorting fix
+[33m9c104e1[m sorting fix
+[33m158c3d4[m sorting fix
+[33m2af2b26[m sorting fix
+[33m5640388[m your message
+[33m61b8fa0[m Add social media preview image
+[33mc05f343[m Refactor: Fixed JSX syntax issues and reverted to clean working version
+[33m990b67e[m Refactor: Fixed JSX syntax issues and reverted to clean working version
+[33m65a44c3[m Refactor: Fixed JSX syntax issues and reverted to clean working version
+[33mcecef11[m Refactor: Fixed JSX syntax issues and reverted to clean working version
+[33m7d761d4[m Refactor: Fixed JSX syntax issues and reverted to clean working version
+[33mfb93117[m Refactor: Fixed JSX syntax issues and reverted to clean working version
+[33m4456aa6[m Refactor: Fixed JSX syntax issues and reverted to clean working version
+[33m0ed3103[m Refactor: Fixed JSX syntax issues and reverted to clean working version
+[33m05458dc[m Refactor: Fixed JSX syntax issues and reverted to clean working version
+[33mb4b7a52[m Refactor: Fixed JSX syntax issues and reverted to clean working version
+[33m1653a91[m Refactor: Fixed JSX syntax issues and reverted to clean working version
+[33m0d3d7b2[m Refactor: Fixed JSX syntax issues and reverted to clean working version
+[33m8aaba35[m Refactor: Fixed JSX syntax issues and reverted to clean working version
+[33mc29138d[m Refactor: Fixed JSX syntax issues and reverted to clean working version
+[33mfaabbff[m Refactor: Fixed JSX syntax issues and reverted to clean working version
+[33mbeff372[m Refactor: Fixed JSX syntax issues and reverted to clean working version
+[33m57030a8[m Add keyboard navigation to search suggestions
+[33m8047641[m Add keyboard navigation to search suggestions
+[33m453ccc1[m Add keyboard navigation to search suggestions
+[33me004fc6[m Add keyboard navigation to search suggestions
+[33m237b143[m Add keyboard navigation to search suggestions
+[33mccb5777[m Add keyboard navigation to search suggestions
+[33mf3501ae[m Add keyboard navigation to search suggestions
+[33ma01af57[m Set default text color to black and background to white
+[33mc7c943d[m Add DOMPurify to sanitize dangerouslySetInnerHTML
+[33md09f965[m Improve mobile layout and scaling
+[33ma567f21[m Initial commit
