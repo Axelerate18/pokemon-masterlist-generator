@@ -25,7 +25,7 @@ export async function GET() {
       process.env.GOOGLE_CLIENT_EMAIL,
       null,
       privateKey,
-      ["https://www.googleapis.com/auth/spreadsheets.readonly"]
+      ["https://www.googleapis.com/auth/spreadsheets"]
     );
 
     console.log("DEBUG: Auth object created");
