@@ -87,10 +87,40 @@ console.log("DEBUG ACCESS TOKEN OK, length:", accessToken.length);
     console.log("DEBUG: Sheets returned data OK");
 
     // -------------------------------
-    // RETURN RESULT
-    // -------------------------------
+// TRANSFORM SHEET ROWS INTO OBJECTS
+// -------------------------------
+const rows = json.values || [];
 
-    return NextResponse.json({ values: json.values || [] });
+if (!rows || rows.length === 0) {
+  console.log("DEBUG: No rows returned from sheet");
+  return NextResponse.json({ cards: [] });
+}
+
+if (rows.length < 2) {
+  console.log("DEBUG: Sheet has only header or is empty");
+  return NextResponse.json({ cards: [] });
+}
+
+// First row = header columns
+const header = rows[0];
+// All later rows = data
+const body = rows.slice(1);
+
+console.log("DEBUG HEADER:", header);
+
+// Convert each sheet row → object using header keys
+const formatted = body.map((row) => {
+  const obj = {};
+  header.forEach((colName, index) => {
+    obj[colName] = row[index] ?? ""; // Fill missing columns with empty string
+  });
+  return obj;
+});
+
+console.log("DEBUG: Final formatted row count:", formatted.length);
+
+// Final return to frontend
+return NextResponse.json({ cards: formatted });
 
   } catch (error) {
     console.error("🔥 ROUTE ERROR:", error);
