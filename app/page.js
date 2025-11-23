@@ -825,16 +825,17 @@ useEffect(() => {
     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
     const data = await res.json();
-    setData(data);
+    setData(data.cards);
 
     const cleanedExpansions = [...new Set(
-      data
+      data.cards
         .map((row) => row["Expansion"])
         .filter(Boolean)
         .map((exp) => exp.split(" (")[0].trim())
     )].sort();
 
-    setExpansionSuggestions(cleanedExpansions);
+setExpansionSuggestions(cleanedExpansions);
+
   } catch (err) {
     console.error("Error loading card data:", err);
   } finally {
