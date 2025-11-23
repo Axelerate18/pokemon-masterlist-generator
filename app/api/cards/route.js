@@ -3,10 +3,23 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
+    // 🔥 DEBUG ENV VARS
+    console.log("DEBUG EMAIL:", process.env.GOOGLE_CLIENT_EMAIL);
+    console.log("DEBUG SHEET:", process.env.GOOGLE_SHEET_ID);
+
+    if (!process.env.GOOGLE_PRIVATE_KEY) {
+      console.log("DEBUG KEY: MISSING");
+    } else {
+      console.log("DEBUG KEY LENGTH:", process.env.GOOGLE_PRIVATE_KEY.length);
+      console.log("DEBUG KEY FIRST 40:", process.env.GOOGLE_PRIVATE_KEY.slice(0, 40));
+      console.log("DEBUG KEY LAST 40:", process.env.GOOGLE_PRIVATE_KEY.slice(-40));
+    }
+
     // Normalize private key
-    const privateKey = process.env.GOOGLE_PRIVATE_KEY
-      .replace(/\\n/g, '\n')
-      .replace(/\r?\n/g, '\n');
+    let privateKey = process.env.GOOGLE_PRIVATE_KEY || "";
+    privateKey = privateKey
+      .replace(/\\n/g, "\n") // convert escaped newlines to actual
+      .replace(/\r?\n/g, "\n"); // ensure consistent line breaks
 
     const auth = new google.auth.JWT(
       process.env.GOOGLE_CLIENT_EMAIL,
