@@ -50,14 +50,19 @@ export async function GET() {
     // OBTAIN ACCESS TOKEN
     // -------------------------------
 
-    const accessToken = await auth.getAccessToken();
+    // GoogleAuth v9 returns { token, res }
+    const tokenResponse = await auth.getAccessToken();
+    const accessToken = tokenResponse?.token;
+
+    console.log("DEBUG RAW TOKEN RESPONSE:", tokenResponse);
+    console.log("DEBUG EXTRACTED TOKEN:", accessToken);
 
     if (!accessToken || accessToken.length < 30) {
       console.log("DEBUG BAD TOKEN:", accessToken);
       throw new Error("Access token missing or invalid");
     }
 
-    console.log("DEBUG ACCESS TOKEN OK, length:", accessToken.length);
+console.log("DEBUG ACCESS TOKEN OK, length:", accessToken.length);
 
     // -------------------------------
     // DIRECT REST CALL TO SHEETS API
