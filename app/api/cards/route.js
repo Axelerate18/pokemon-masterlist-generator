@@ -20,29 +20,40 @@ export async function GET() {
     // -------------------------------
     // NORMALIZE PRIVATE KEY
     // -------------------------------
-    let privateKey = process.env.GOOGLE_PRIVATE_KEY
-      .replace(/\\n/g, "\n")
-      .replace(/\r?\n/g, "\n");
+
+    const rawKey = process.env.GOOGLE_PRIVATE_KEY;
+
+    if (!rawKey) {
+      throw new Error("Private key missing");
+    }
+
+    // Fix all newline variations
+    const privateKey = rawKey
+      .replace(/\\n/g, "\n")      // convert \n -> actual newline
+      .replace(/\r?\n/g, "\n");   // normalize endings
+
+    console.log("DEBUG: Normalized private key length:", privateKey.length);
 
     // -------------------------------
     // CREATE JWT CLIENT
     // -------------------------------
-    const auth = new google.auth.JWT(
-      process.env.GOOGLE_CLIENT_EMAIL,
-      null,
-      privateKey,
-      ["https://www.googleapis.com/auth/spreadsheets"] // FULL SCOPE
-    );
 
-    console.log("DEBUG: Auth object created");
+    const auth = new google.auth.JWT({
+      email: process.env.GOOGLE_CLIENT_EMAIL,
+      key: privateKey,
+      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+    });
+
+    console.log("DEBUG: Auth object created OK");
 
     // -------------------------------
     // OBTAIN ACCESS TOKEN
     // -------------------------------
+
     const accessToken = await auth.getAccessToken();
 
     if (!accessToken || accessToken.length < 30) {
-      console.log("DEBUG ACCESS TOKEN INVALID:", accessToken);
+      console.log("DEBUG BAD TOKEN:", accessToken);
       throw new Error("Access token missing or invalid");
     }
 
@@ -51,27 +62,29 @@ export async function GET() {
     // -------------------------------
     // DIRECT REST CALL TO SHEETS API
     // -------------------------------
-    const sheetId = process.env.GOOGLE_SHEET_ID;
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Data!A:Z`;
 
-    const response = await fetch(url + "?majorDimension=ROWS", {
+    const sheetId = process.env.GOOGLE_SHEET_ID;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Data!A:Z?majorDimension=ROWS`;
+
+    const response = await fetch(url, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
     });
 
     if (!response.ok) {
-      const raw = await response.text();
-      console.log("🔥 GOOGLE RAW ERROR:", raw);
-      throw new Error(`Sheets API returned HTTP ${response.status}`);
+      const text = await response.text();
+      console.log("🔥 GOOGLE RAW ERROR:", text);
+      throw new Error(`Sheets API failed: HTTP ${response.status}`);
     }
 
     const json = await response.json();
-    console.log("DEBUG: Data returned successfully");
+    console.log("DEBUG: Sheets returned data OK");
 
     // -------------------------------
     // RETURN RESULT
     // -------------------------------
+
     return NextResponse.json({ values: json.values || [] });
 
   } catch (error) {
