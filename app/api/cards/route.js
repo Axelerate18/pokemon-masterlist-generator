@@ -3,7 +3,9 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    // 🔥 DEBUG ENV VARS
+    // -------------------------------
+    // DEBUG: Show loaded env values
+    // -------------------------------
     console.log("DEBUG EMAIL:", process.env.GOOGLE_CLIENT_EMAIL);
     console.log("DEBUG SHEET:", process.env.GOOGLE_SHEET_ID);
 
@@ -15,52 +17,68 @@ export async function GET() {
       console.log("DEBUG KEY LAST 40:", process.env.GOOGLE_PRIVATE_KEY.slice(-40));
     }
 
-    // Normalize private key
-    let privateKey = process.env.GOOGLE_PRIVATE_KEY || "";
-    privateKey = privateKey
-      .replace(/\\n/g, "\n") // convert escaped newlines to actual
-      .replace(/\r?\n/g, "\n"); // ensure consistent line breaks
+    // -------------------------------
+    // NORMALIZE PRIVATE KEY
+    // -------------------------------
+    let privateKey = process.env.GOOGLE_PRIVATE_KEY
+      .replace(/\\n/g, "\n")
+      .replace(/\r?\n/g, "\n");
 
+    // -------------------------------
+    // CREATE JWT CLIENT
+    // -------------------------------
     const auth = new google.auth.JWT(
       process.env.GOOGLE_CLIENT_EMAIL,
       null,
       privateKey,
-      ["https://www.googleapis.com/auth/spreadsheets"]
+      ["https://www.googleapis.com/auth/spreadsheets"] // FULL SCOPE
     );
 
     console.log("DEBUG: Auth object created");
 
-    const sheets = google.sheets({ version: "v4", auth });
+    // -------------------------------
+    // OBTAIN ACCESS TOKEN
+    // -------------------------------
+    const accessToken = await auth.getAccessToken();
 
-    console.log("DEBUG: Sheets client created");
-
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: "Data!A:Z",
-    });
-
-    console.log("DEBUG: Sheets API responded");
-
-    const rows = response.data.values;
-
-    if (!rows || rows.length === 0) {
-      console.log("DEBUG: No data rows found");
-      return NextResponse.json([]);
+    if (!accessToken || accessToken.length < 30) {
+      console.log("DEBUG ACCESS TOKEN INVALID:", accessToken);
+      throw new Error("Access token missing or invalid");
     }
 
-    const headers = rows[0];
-    const data = rows.slice(1).map((row) => {
-      const obj = {};
-      headers.forEach((header, index) => {
-        obj[header] = row[index] ?? "";
-      });
-      return obj;
+    console.log("DEBUG ACCESS TOKEN OK, length:", accessToken.length);
+
+    // -------------------------------
+    // DIRECT REST CALL TO SHEETS API
+    // -------------------------------
+    const sheetId = process.env.GOOGLE_SHEET_ID;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Data!A:Z`;
+
+    const response = await fetch(url + "?majorDimension=ROWS", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     });
 
-    return NextResponse.json(data);
+    if (!response.ok) {
+      const raw = await response.text();
+      console.log("🔥 GOOGLE RAW ERROR:", raw);
+      throw new Error(`Sheets API returned HTTP ${response.status}`);
+    }
+
+    const json = await response.json();
+    console.log("DEBUG: Data returned successfully");
+
+    // -------------------------------
+    // RETURN RESULT
+    // -------------------------------
+    return NextResponse.json({ values: json.values || [] });
 
   } catch (error) {
-    console.error("🔥 GOOGLE API ERROR:", error);
-    return NextResponse.json({ error: "Failed to load data" }, { status: 500 });
+    console.error("🔥 ROUTE ERROR:", error);
+    return NextResponse.json(
+      { error: "Failed to load data" },
+      { status: 500 }
+    );
   }
 }
