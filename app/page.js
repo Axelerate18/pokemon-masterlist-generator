@@ -181,6 +181,12 @@ const speciesToSlug = (name) =>
     .replace(/[:]/g, "")    // Type: Null → type null
     .replace(/\s+/g, "-");  // spaces → hyphens
 
+// Cutoff: first Pokémon introduced in Scarlet & Violet
+const SV_CUTOFF_SPECIES = "Sprigatito";
+
+// Compute index once
+const svCutoffIndex = POKEMON_SPECIES.indexOf(SV_CUTOFF_SPECIES);
+
 // Maps clean expansion names to set symbol URLs
 const setSymbols = {
   "Base Set": "https://images.pokemontcg.io/base1/symbol.png",
@@ -315,7 +321,23 @@ const setSymbols = {
   "Pokémon GO": "https://images.pokemontcg.io/pgo/symbol.png",
   "Crown Zenith": "https://images.pokemontcg.io/swsh12pt5/symbol.png",
   "Shiny Vault": "https://images.pokemontcg.io/sma/symbol.png",
-  "Hidden Fates": "https://images.pokemontcg.io/sm115/symbol.png", // Ensure this is added too
+  "Hidden Fates": "https://images.pokemontcg.io/sm115/symbol.png",
+  "Scarlet & Violet": "https://images.pokemontcg.io/sv1/symbol.png",
+  "Paldea Evolved": "https://images.pokemontcg.io/sv2/symbol.png",
+  "Obsidian Flames": "https://images.pokemontcg.io/sv3/symbol.png",
+  "151": "https://images.pokemontcg.io/sv3pt5/symbol.png",
+  "Paradox Rift": "https://images.pokemontcg.io/sv4/symbol.png",
+  "Paldean Fates": "https://images.pokemontcg.io/sv4pt5/symbol.png",
+  "Temporal Forces": "https://images.pokemontcg.io/sv5/symbol.png",
+  "Twilight Masquerade": "https://images.pokemontcg.io/sv6/symbol.png",
+  "Shrouded Fable": "https://images.pokemontcg.io/sv6pt5/symbol.png",
+  "Stellar Crown": "https://images.pokemontcg.io/sv7/symbol.png",
+  "Surging Sparks": "https://images.pokemontcg.io/sv8/symbol.png",
+  "Prismatic Evolutions": "https://images.pokemontcg.io/sv8pt5/symbol.png",
+  "Journey Together": "https://images.pokemontcg.io/sv9/symbol.png",
+  "Destined Rivals": "https://images.pokemontcg.io/sv10/symbol.png",
+  "Black Bolt": "https://images.pokemontcg.io/zsv10pt5/symbol.png",
+  "White Flare": "https://images.pokemontcg.io/rsv10pt5/symbol.png",
 };
 
 const setLogos = Object.fromEntries(
@@ -402,6 +424,21 @@ const typeIcons = {
     Colorless: "https://archives.bulbagarden.net/media/upload/thumb/1/1d/Colorless-attack.png/30px-Colorless-attack.png",
     Rainbow: "https://archives.bulbagarden.net/media/upload/d/dd/Rainbow-attack.png"
   };
+
+  // Scarlet & Violet rarity icons
+const svRarityIcons = {
+  "Common": "/icons/Rarity_C.png",
+  "Uncommon": "/icons/Rarity_U.png",
+  "Rare": "/icons/Rarity_R.png",
+  "Double Rare": "/icons/Rarity_DR.png",
+  "Illustration Rare": "/icons/Rarity_IR.png",
+  "Shiny Rare": "/icons/Rarity_SR.png",
+  "Ultra Rare": "/icons/Rarity_UR.png",
+  "Special Illustration Rare": "/icons/Rarity_SIR.png",
+  "Shiny Ultra Rare": "/icons/Rarity_SUR.png",
+  "Hyper Rare": "/icons/Rarity_HR.png",
+  "ACE SPEC Rare": "/icons/Rarity_AS.png",
+};
 
 function renderCardNameWithSymbols(cardName, row = {}, overrideSymbolFlags = {}) {
 
@@ -493,6 +530,8 @@ function renderCardNameWithSymbols(cardName, row = {}, overrideSymbolFlags = {})
   };
 
     const series = (row["Series"] || "").toLowerCase();
+    const isSV = series.includes("s&v");
+
 const lowerName = (cardName || "").toLowerCase();
 
 const skipSymbols =
@@ -503,7 +542,22 @@ const skipSymbols =
 
   const sortedKeys = Object.keys(symbolMap).sort((a, b) => b.length - a.length);
 
-  let processed = cardName;
+let processed = cardName;
+
+// --- Tera ex symbol logic (tex marker) ---
+if (/\btex\b/i.test(lowerName)) {
+  const imgTag = `<img src="/icons/ex_Tera.png" class="inline-symbol" alt="tera ex icon" />`;
+  processed = processed.replace(/\btex\b/gi, imgTag);
+  return processed;
+}
+
+  // --- Scarlet & Violet ex symbol logic ---
+if (isSV && /\bex\b/.test(lowerName)) {
+  const imgTag = `<img src="/icons/ex_SV.png" class="inline-symbol" alt="ex icon" />`;
+  processed = processed.replace(/\bex\b/g, imgTag);
+
+  return processed;
+}
 
   sortedKeys.forEach((key) => {
   if (skipSymbols && ["C", "G", "V"].includes(key)) {
@@ -555,6 +609,7 @@ function extractPokemonName(cardName) {
 const CardTable = React.memo(function CardTable({
   displayedData,
   tableRef,
+  isViewingSingleSVExpansion,
   minWidths
 }) {
   return (
@@ -608,6 +663,21 @@ const CardTable = React.memo(function CardTable({
 
         const rawExpansion = row["Expansion"] || "";
 
+        // --- S&V species + expansion logic for rarity icons ---
+        const cardName = row["Card Name"] || "";
+        const baseName = cardName.split(/[\s-]/)[0];
+        const speciesIndex = POKEMON_SPECIES.indexOf(baseName);
+
+        // Species introduced in S&V or later?
+        const isSVSpecies =
+          speciesIndex !== -1 && speciesIndex >= svCutoffIndex;
+
+        // Use S&V rarity icons if:
+        // 1. Viewing an S&V expansion OR
+        // 2. Searching for a Pokémon from S&V species and onward
+        const shouldUseSVSymbols =
+          isViewingSingleSVExpansion || isSVSpecies;
+
         return (
           <tr key={i}>
             {renderCell(row["Series"], "series")}
@@ -624,6 +694,19 @@ const CardTable = React.memo(function CardTable({
             </td>
             {(() => {
               const cardName = row["Card Name"] || "";
+
+              // Extract the base species name (strip ex, V, GX, etc.)
+              const baseName = cardName.split(/[\s-]/)[0]; // Good enough for 99.9%
+
+              // Lookup in the species array
+              const speciesIndex = POKEMON_SPECIES.indexOf(baseName);
+
+              // Species introduced in S&V or later?
+              const isSVSpecies = speciesIndex !== -1 && speciesIndex >= svCutoffIndex;
+
+              const shouldUseSVSymbols =
+                isViewingSingleSVExpansion || isSVSpecies;
+
               const series = (row["Series"] || "").toLowerCase();
               const lowerName = cardName.toLowerCase();
 
@@ -652,7 +735,21 @@ const CardTable = React.memo(function CardTable({
               );
             })()}
             {renderCell(setNumber, "setNumber")}
-            {renderCell(row["Rarity"], "rarity")}
+            <td className="rarity">
+              {shouldUseSVSymbols && svRarityIcons[row["Rarity"]] ? (
+                <div style={{ display: "flex", justifyContent: "center" }}>
+                  <img
+                    src={svRarityIcons[row["Rarity"]]}
+                    alt={row["Rarity"]}
+                    className="inline-symbol"
+                    style={{ height: "18px" }}
+                  />
+                </div>
+              ) : (
+                row["Rarity"]
+              )}
+            </td>
+
             {renderCell(row["Category"], "category")}
             <td className="type">
               <span
@@ -880,6 +977,13 @@ useEffect(() => {
  const displayedData = React.useMemo(() => {
   return searchPerformed ? filteredData : data;
 }, [searchPerformed, filteredData, data]);
+
+// Detect if we are viewing a *single* S&V expansion
+  const isViewingSingleSVExpansion =
+    confirmedSearchField === "Expansion" &&
+    confirmedSearchInput.trim() !== "" &&
+    displayedData.length > 0 &&
+    (displayedData[0]["Series"] || "").toLowerCase() === "s&v";
 
 const handleSelectSuggestion = React.useCallback((exp) => {
   setSearchInput(exp);
@@ -1284,7 +1388,7 @@ const handleDownloadCSV = () => {
   const exportRows = filteredData.map((row) => ({
     "Series": row["Series"] || "",
     "Expansion": row["Expansion"] || "",
-    "Card Name": row["Card Name"] || "",
+    "Card Name": (row["Card Name"] || "").replace(/\btex\b/gi, "ex"),
     "Set Number": `="${(row["Set number"] || "") + (row["Set size"] || "")}"`,
     "Rarity": row["Rarity"] || "",
     "Category": row["Category"] || "",
@@ -2018,8 +2122,7 @@ onKeyDown={(e) => {
   </div>
 )}
 
-        {searchPerformed && (
-
+{searchPerformed && (
   <CardTable
     displayedData={displayedData}
     confirmedSearchInput={confirmedSearchInput}
@@ -2027,6 +2130,7 @@ onKeyDown={(e) => {
     tableRef={tableRef}
     columnCount={columnCount}
     minWidths={minWidths}
+    isViewingSingleSVExpansion={isViewingSingleSVExpansion}
   />
 )}
 
