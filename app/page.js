@@ -1754,6 +1754,10 @@ const minWidths = [
         color: #000;
       }
 
+    :root {
+      --bottom-bar-height: 30px;
+    }
+
       /* ✅ STICKY: wraps all controls */
       /* ---------- TOP BAR: single-line, no wrap, no horizontal scroll ---------- */
 .sticky-top-container {
@@ -1871,6 +1875,7 @@ html, body {
         flex-direction: column;
         background-color: white;
         padding-right: 8px;
+        padding-bottom: var(--bottom-bar-height);
       }
 
       /* ✅ Prevent horizontal overflow */
@@ -1878,6 +1883,39 @@ html, body {
         overflow-x: visible;
         width: 100%;
         box-sizing: border-box;
+      }
+      
+      .sticky-bottom-container {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        width: calc(100vw - 16px);
+        z-index: 1000;
+        height: var(--bottom-bar-height);
+        background-color: white;
+        box-shadow: 0 -2px 4px rgba(0,0,0,0.08);
+      }
+      
+      .bottom-bar-inner {
+        height: 100%;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        font-size: 11px;
+        color: #777;
+        white-space: nowrap;
+      }
+
+      .bottom-disclaimer {
+        grid-column: 2;
+        text-align: center;
+      }
+
+      .bottom-total {
+        grid-column: 3;
+        justify-self: end;
+        padding-right: 12px;
+        opacity: 0.85;
       }
 
       /* ✅ Table styles */
@@ -2434,6 +2472,18 @@ onKeyDown={(e) => {
 )}
 
         </div>
+        <div className="sticky-bottom-container">
+          <div className="bottom-bar-inner">
+            <div className="bottom-disclaimer">
+              This is a fan-made TCG database tool. Not affiliated with, endorsed or sponsored by Nintendo, The Pokémon Company or Creatures Inc.
+            </div>
+
+            <div className="bottom-total">
+              Total cards: {data.length.toLocaleString("en-US")}
+            </div>
+          </div>
+        </div>
+
       </div>
       <div id="measure-container" style={{
   position: "absolute",

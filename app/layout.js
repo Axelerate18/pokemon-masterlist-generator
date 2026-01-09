@@ -1,6 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -25,8 +27,8 @@ export default function RootLayout({ children }) {
   <meta property="og:title" content="Pokémon TCG Masterlist Generator" />
   <meta property="og:description" content="Search and explore every English Pokémon TCG card by name or expansion." />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://pokemon-masterlist-generator.vercel.app" />
-  <meta property="og:image" content="https://pokemon-masterlist-generator.vercel.app/preview.png" />
+  <meta property="og:url" content={siteUrl} />
+  <meta property="og:image" content={`${siteUrl}/preview.png`} />
   <meta name="twitter:card" content="summary_large_image" />
 </head>
       <body
