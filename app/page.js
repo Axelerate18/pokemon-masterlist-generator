@@ -270,6 +270,8 @@ const setSymbols = {
   "McDonald's Collection 2019": "https://images.pokemontcg.io/mcd19/symbol.png",
   "McDonald's Collection 2021": "https://images.pokemontcg.io/mcd21/symbol.png",
   "McDonald's Collection 2022": "https://images.pokemontcg.io/mcd22/symbol.png",
+  "McDonald's Collection 2023": "https://images.pokemontcg.io/mcd23/symbol.png",
+  "McDonald's Collection 2024": "https://images.pokemontcg.io/mcd24/symbol.png",
   "Pokémon Futsal": "https://images.pokemontcg.io/fut20/symbol.png",
   "Kalos Starter Set": "https://images.pokemontcg.io/xy0/symbol.png",
   "XY": "https://images.pokemontcg.io/xy1/symbol.png",
@@ -338,7 +340,31 @@ const setSymbols = {
   "Destined Rivals": "https://images.pokemontcg.io/sv10/symbol.png",
   "Black Bolt": "https://images.pokemontcg.io/zsv10pt5/symbol.png",
   "White Flare": "https://images.pokemontcg.io/rsv10pt5/symbol.png",
+  "Mega Evolution": "https://images.pokemontcg.io/me1/symbol.png",
+  "Phantasmal Flames": "https://images.pokemontcg.io/me2/symbol.png"
 };
+
+function getPreferredExpansionSymbolSrc(originalUrl) {
+  if (!originalUrl) return { preferred: null, fallback: null };
+
+  // Extract code from: https://images.pokemontcg.io/<code>/symbol.png
+  const match = originalUrl.match(/\/([a-z0-9]+)\/symbol\.png/i);
+  const code = match ? match[1].toLowerCase() : null;
+
+  if (!code) return { preferred: null, fallback: originalUrl };
+
+  // Only try trimmed for modern rectangle-style codes.
+  // sv...  (SV era), me... (Mega Evolution era), mcd... (McDonald's)
+  const isRectangleStyle =
+    code.startsWith("sv") || code.startsWith("me") || code.startsWith("mcd");
+
+  if (!isRectangleStyle) return { preferred: null, fallback: originalUrl };
+
+  return {
+    preferred: `/set-symbols/trimmed/${code}.png`,
+    fallback: originalUrl,
+  };
+}
 
 const setLogos = Object.fromEntries(
   Object.entries(setSymbols).map(([name, symbolUrl]) => {
@@ -347,11 +373,112 @@ const setLogos = Object.fromEntries(
   })
 );
 
-function getSymbolsForExpansion(expansionName) {
-  const name = expansionName.trim();
+const EXPANSION_VARIANT_ICONS = {
+  // Pokémon TCG Classic
+  "Pokémon TCG Classic (Venusaur)": "/icons/TCG_Classic_Venusaur.png",
+  "Pokémon TCG Classic (Charizard)": "/icons/TCG_Classic_Charizard.png",
+  "Pokémon TCG Classic (Blastoise)": "/icons/TCG_Classic_Blastoise.png",
+};
 
-  if (/black star promo/i.test(name)) {
+// Half Deck icons that are unique (one era only)
+const HALF_DECK_ICONS = {
+  "Sylveon Half Deck": "/icons/Sylveon_Half_Deck.png",
+  "Zoroark Half Deck": "/icons/Zoroark_Half_Deck.png",
+  "Pikachu Libre Half Deck": "/icons/Pikachu_Libre_Half_Deck.png",
+  "Alolan Raichu Half Deck": "/icons/Alolan_Raichu_Half_Deck.png",
+  "Lycanroc Half Deck": "/icons/Lycanroc_Half_Deck.png",
+  "Suicune Half Deck": "/icons/Suicune_Half_Deck.png",
+  "Wigglytuff Half Deck": "/icons/Wigglytuff_Half_Deck.png",
+  "Bisharp Half Deck": "/icons/Bisharp_Half_Deck.png",
+  "Excadrill Half Deck": "/icons/Excadrill_Half_Deck.png",
+  "Gyarados Half Deck": "/icons/Gyarados_Half_Deck.png",
+  "Raichu Half Deck": "/icons/Raichu_Half_Deck.png",
+  "Lucario Half Deck": "/icons/Lucario_Half_Deck.png",
+  "Manaphy Half Deck": "/icons/Manaphy_Half_Deck.png",
+  "Noivern Half Deck": "/icons/Noivern_Half_Deck.png",
+  "Minun Half Deck": "/icons/Minun_Half_Deck.png",
+  "Plusle Half Deck": "/icons/Plusle_Half_Deck.png",
+};
+
+// Half Decks that exist in both EX and XY eras
+const HALF_DECK_ICONS_BY_SERIES = {
+  "Latios Half Deck": {
+    EX: "/icons/Latios_EX_Half_Deck.png",
+    XY: "/icons/Latios_XY_Half_Deck.png",
+  },
+  "Latias Half Deck": {
+    EX: "/icons/Latias_EX_Half_Deck.png",
+    XY: "/icons/Latias_XY_Half_Deck.png",
+  },
+};
+
+function getHalfDeckIcon(expansion, series) {
+  const cleanSeries = (series || "").trim().toUpperCase();
+
+  // EX/XY special cases
+  if (HALF_DECK_ICONS_BY_SERIES[expansion]) {
+    const icons = HALF_DECK_ICONS_BY_SERIES[expansion];
+    if (icons[cleanSeries]) return icons[cleanSeries];
+  }
+
+  // Simple 1:1 cases
+  return HALF_DECK_ICONS[expansion] || null;
+}
+
+const WOTC_SETS = new Set([
+  "Base Set",
+  "Jungle",
+  "Fossil",
+  "Base Set 2",     // ← but we will EXEMPT this one later
+  "Team Rocket",
+  "Black Star Promo",
+  "Gym Heroes",
+  "Gym Challenge",
+  "Neo Genesis",
+  "Neo Discovery",
+  "Neo Revelation",
+  "Neo Destiny",
+  "Legendary Collection",
+  "Expedition Base Set",
+  "Aquapolis",
+  "Skyridge"
+]);
+
+const RECT_SYMBOL_HEIGHT_PX = 14;  // visual height of rectangle-style symbols
+const RECT_SYMBOL_WIDTH_PX = 24;   // visual width of rectangle-style symbols
+
+function getSymbolsForExpansion(expansionName) {
+  const name = (expansionName || "").trim();
+  const baseName = name.split(" (")[0].trim(); // strips (PP), (P), (E), etc.
+
+  // New-style rectangle promos (S&V + ME) – allow suffix variants like "(PP)"
+  if (baseName === "SV Black Star Promo") {
+    return ["/set-symbols/trimmed/svp.png"];
+  }
+
+  if (baseName === "ME Black Star Promo") {
+    return ["/set-symbols/trimmed/mep.png"];
+  }
+
+  // Older Black Star Promos – use the classic universal star symbol
+  if (/black star promo/i.test(baseName)) {
     return [setSymbols["Black Star Promo"]].filter(Boolean);
+  }
+
+  // ...keep the rest of your function as-is, but whenever you do:
+  // const baseName = name.split(" (")[0];
+  // you can reuse the baseName we computed above.
+
+  // Pokémon TCG Classic variant symbols (trimmed rectangles)
+  if (/^pokémon tcg classic/i.test(name)) {
+    const classicMap = {
+      "Pokémon TCG Classic (Venusaur)": "clv",
+      "Pokémon TCG Classic (Charizard)": "clc",
+      "Pokémon TCG Classic (Blastoise)": "clb",
+    };
+
+    const code = classicMap[name];
+    if (code) return [`/set-symbols/trimmed/${code}.png`];
   }
 
   // Special case: show both Hidden Fates and Shiny Vault symbols
@@ -369,7 +496,7 @@ function getSymbolsForExpansion(expansionName) {
   // Handle expansions that contain one of the ignore suffixes
   const IGNORE_SUFFIXES = [
     "(E)", "(P)", "(A)", "(WC)", "(TK)", "(BA)", "(Classic Collection)", 
-    "(Trainer Gallery)", "(ToT)", "(PPPP)", "(Galarian Gallery)", "(Shiny Vault)"
+    "(Trainer Gallery)", "(ToT)", "(PP)", "(Galarian Gallery)", "(Shiny Vault)"
   ];
 
   const ignoreSuffixMatch = IGNORE_SUFFIXES.find(suffix => name.includes(suffix));
@@ -394,9 +521,17 @@ function getLogoForExpansion(expansionName) {
     return setLogos["Black Star Promo"];
   }
 
+  if (/^pokémon tcg classic/i.test(name)) {
+    return "/icons/TCG_Classic_Logo.png";
+  }
+
+  if (/^my first battle/i.test(name)) {
+    return "/icons/My_First_Battle_Logo.png";
+  }
+
   const IGNORE_SUFFIXES = [
     "(E)", "(P)", "(A)", "(WC)", "(TK)", "(BA)", "(Classic Collection)", 
-    "(Trainer Gallery)", "(ToT)", "(PPPP)", "(Galarian Gallery)", "(Shiny Vault)"
+    "(Trainer Gallery)", "(ToT)", "(PP)", "(Galarian Gallery)", "(Shiny Vault)"
   ];
 
   const matchedSuffix = IGNORE_SUFFIXES.find((suffix) =>
@@ -437,6 +572,8 @@ const svRarityIcons = {
   "Special Illustration Rare": "/icons/Rarity_SIR.png",
   "Shiny Ultra Rare": "/icons/Rarity_SUR.png",
   "Hyper Rare": "/icons/Rarity_HR.png",
+  "Mega Hyper Rare": "/icons/Rarity_MHR.png",
+  "Black White Rare": "/icons/Rarity_BW.png",
   "ACE SPEC Rare": "/icons/Rarity_AS.png",
 };
 
@@ -510,7 +647,7 @@ function renderCardNameWithSymbols(cardName, row = {}, overrideSymbolFlags = {})
     return `${energyConfig.base} ${energy(energyConfig.types)}`;
   }
 
-  const symbolMap = {
+    const symbolMap = {
     "GoldStar": "/icons/GoldStar.png",
     "EX": "/icons/EX_BW_XY.png",   // uppercase EX only
     "BREAK": "/icons/Break.png",
@@ -529,45 +666,60 @@ function renderCardNameWithSymbols(cardName, row = {}, overrideSymbolFlags = {})
     "GL": "/icons/GL.png",
   };
 
-    const series = (row["Series"] || "").toLowerCase();
-    const isSV = series.includes("s&v");
+  // Normalized series info
+  const seriesRaw = row["Series"] || "";
+  const series = seriesRaw.toLowerCase();
+  const seriesCode = seriesRaw.trim().toUpperCase();
+  const isSV = series.includes("s&v");
 
-const lowerName = (cardName || "").toLowerCase();
+  const lowerName = (cardName || "").toLowerCase();
 
-const skipSymbols =
-  overrideSymbolFlags.skipCGVSymbols ||
-  lowerName === "unown c" ||
-  lowerName === "unown g" ||
-  (lowerName === "unown v" && !series.includes("sw&sh"));
+  const skipSymbols =
+    overrideSymbolFlags.skipCGVSymbols ||
+    lowerName === "unown c" ||
+    lowerName === "unown g" ||
+    (lowerName === "unown v" && !series.includes("sw&sh"));
 
   const sortedKeys = Object.keys(symbolMap).sort((a, b) => b.length - a.length);
 
-let processed = cardName;
+  let processed = cardName;
 
-// --- Tera ex symbol logic (tex marker) ---
-if (/\btex\b/i.test(lowerName)) {
-  const imgTag = `<img src="/icons/ex_Tera.png" class="inline-symbol" alt="tera ex icon" />`;
-  processed = processed.replace(/\btex\b/gi, imgTag);
-  return processed;
-}
+  // --- Tera ex symbol logic (tex marker) ---
+  if (/\btex\b/i.test(lowerName)) {
+    const imgTag = `<img src="/icons/ex_Tera.png" class="inline-symbol" alt="tera ex icon" />`;
+    processed = processed.replace(/\btex\b/gi, imgTag);
+    return processed;
+  }
 
   // --- Scarlet & Violet ex symbol logic ---
-if (isSV && /\bex\b/.test(lowerName)) {
-  const imgTag = `<img src="/icons/ex_SV.png" class="inline-symbol" alt="ex icon" />`;
-  processed = processed.replace(/\bex\b/g, imgTag);
-
-  return processed;
-}
-
-  sortedKeys.forEach((key) => {
-  if (skipSymbols && ["C", "G", "V"].includes(key)) {
-    return; // skip these 3 if flag is set
+  if (isSV && /\bex\b/.test(lowerName)) {
+    const imgTag = `<img src="/icons/ex_SV.png" class="inline-symbol" alt="ex icon" />`;
+    processed = processed.replace(/\bex\b/g, imgTag);
+    return processed;
   }
-  const escapedKey = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-  const regex = new RegExp(`(?<![\\w-])${escapedKey}(?![\\w-])`, "g");
-  const imgTag = `<img src="${symbolMap[key]}" class="inline-symbol" alt="${key} icon" />`;
-  processed = processed.replace(regex, imgTag);
-});
+
+  // --- Mega Evolution ex symbol logic (ME series + "Mega" + "ex") ---
+  const isMESeries = seriesCode === "ME";
+  const hasMegaWord = /\bmega\b/.test(lowerName);
+  const hasExToken = /\bex\b/.test(lowerName);
+
+  if (isMESeries && hasMegaWord && hasExToken) {
+    const imgTag = `<img src="/icons/ex_ME.png" class="inline-symbol" alt="mega ex icon" />`;
+    // Replace the "ex" token with the new Mega Evolution ex icon
+    processed = processed.replace(/\bex\b/gi, imgTag);
+    return processed;
+  }
+
+  // --- Generic symbol replacement (XY Mega, old EX, Gold Star, etc.) ---
+  sortedKeys.forEach((key) => {
+    if (skipSymbols && ["C", "G", "V"].includes(key)) {
+      return; // skip these 3 if flag is set
+    }
+    const escapedKey = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+    const regex = new RegExp(`(?<![\\w-])${escapedKey}(?![\\w-])`, "g");
+    const imgTag = `<img src="${symbolMap[key]}" class="inline-symbol" alt="${key} icon" />`;
+    processed = processed.replace(regex, imgTag);
+  });
 
   return processed;
 }
@@ -604,6 +756,12 @@ function extractPokemonName(cardName) {
     .trim()
     .toLowerCase()
     .replace(/\s+/g, "-"); // turn spaces into hyphens
+}
+
+function getExpansionSymbolHeight(expansionName) {
+  const baseName = (expansionName || "").split(" (")[0];
+  const isWotc = WOTC_SETS.has(baseName) && baseName !== "Base Set 2";
+  return isWotc ? "14px" : "18px";
 }
 
 const CardTable = React.memo(function CardTable({
@@ -682,16 +840,89 @@ const CardTable = React.memo(function CardTable({
           <tr key={i}>
             {renderCell(row["Series"], "series")}
             <td className="expansion">
-              {getSymbolsForExpansion(rawExpansion).map((url, j) => (
-                <img
-                  key={j}
-                  src={url}
-                  alt={`${rawExpansion} symbol`}
-                  className="set-symbol"
-                />
-              ))}
+              {getSymbolsForExpansion(rawExpansion).map((url, j) => {
+        const { preferred, fallback } = getPreferredExpansionSymbolSrc(url);
+        const initialSrc = preferred || fallback || url;
+
+        // Treat anything coming from /set-symbols/trimmed/ as a rectangle too
+        // (this catches SVP/MEP and your Classic/McD/ME trimmed icons).
+        const isRect =
+          !!preferred ||
+          (typeof initialSrc === "string" &&
+            initialSrc.startsWith("/set-symbols/trimmed/"));
+
+        const handleError = (e) => {
+          // Only attempt fallback if we started with a preferred trimmed path
+          if (
+            preferred &&
+            fallback &&
+            e.currentTarget.getAttribute("src") === preferred
+          ) {
+            e.currentTarget.setAttribute("src", fallback);
+          }
+        };
+
+        if (isRect) {
+          return (
+            <span
+              key={j}
+              className="rect-symbol-box"
+              style={{
+                height: `${RECT_SYMBOL_HEIGHT_PX}px`,
+                width: `${RECT_SYMBOL_WIDTH_PX}px`,
+              }}
+            >
+              <img
+                src={initialSrc}
+                alt={`${rawExpansion} symbol`}
+                onError={handleError}
+              />
+            </span>
+          );
+        }
+
+        return (
+          <img
+            key={j}
+            src={initialSrc}
+            alt={`${rawExpansion} symbol`}
+            className="set-symbol"
+            onError={handleError}
+            style={{
+              height: getExpansionSymbolHeight(rawExpansion),
+              width: "auto",
+            }}
+          />
+        );
+      })}
+
+              {/* Trainer Kit Half Deck icons */}
+              {(() => {
+                const halfIcon = getHalfDeckIcon(rawExpansion, row["Series"]);
+                if (!halfIcon) return null;
+
+                const baseName = rawExpansion;
+                const series = (row["Series"] || "").toUpperCase();
+
+                // EX Latios/Latias should be slightly smaller
+                const isEXLatiosLatias =
+                  (baseName === "Latios Half Deck" || baseName === "Latias Half Deck") &&
+                  series === "EX";
+
+                const size = isEXLatiosLatias ? "16px" : "20px";
+
+                return (
+                  <img
+                    src={halfIcon}
+                    className="set-symbol"
+                    style={{ height: size, width: "auto" }}
+                  />
+                );
+              })()}
+
               {rawExpansion}
             </td>
+
             {(() => {
               const cardName = row["Card Name"] || "";
 
@@ -944,7 +1175,6 @@ setExpansionSuggestions(cleanedExpansions);
 }, []);
 
 useEffect(() => {
-  // Only fetch a Pokémon sprite when searching by Card Name
   if (confirmedSearchField !== "Card Name" || !confirmedSearchInput) {
     setPokemonId(null);
     return;
@@ -952,13 +1182,54 @@ useEffect(() => {
 
   const slug = speciesToSlug(confirmedSearchInput);
 
-  fetch(`https://pokeapi.co/api/v2/pokemon/${slug}`)
-    .then(res => {
-      if (!res.ok) throw new Error("Not found");
-      return res.json();
-    })
-    .then(json => setPokemonId(json.id))
-    .catch(() => setPokemonId(null));
+  // Official default forms used by PokéAPI / Bulbapedia / Serebii / Showdown
+  const defaultForms = {
+    meowstic: "meowstic-male",
+    indeedee: "indeedee-male",
+    oinkologne: "oinkologne-male",
+    oricorio: "oricorio-baile",
+    toxtricity: "toxtricity-amped",
+    shellos: "shellos-west",
+    gastrodon: "gastrodon-west",
+    minior: "minior-red-meteor",
+    wormadam: "wormadam-plant",
+    basculin: "basculin-red-striped",
+    darmanitan: "darmanitan-standard",
+    meloetta: "meloetta-aria",
+    aegislash: "aegislash-shield",
+    shaymin: "shaymin-land",
+    wishiwashi: "wishiwashi-solo",
+    lycanroc: "lycanroc-midday",
+  };
+
+  async function fetchSprite() {
+    const candidates = [];
+
+    // Always try the literal species slug first
+    candidates.push(slug);
+
+    // Then try the “canonical default form” if one exists
+    if (defaultForms[slug]) {
+      candidates.push(defaultForms[slug]);
+    }
+
+    for (const s of candidates) {
+      try {
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${s}`);
+        if (!res.ok) continue;
+
+        const json = await res.json();
+        setPokemonId(json.id);
+        return;
+      } catch (e) {
+        // try next
+      }
+    }
+
+    setPokemonId(null);
+  }
+
+  fetchSprite();
 }, [confirmedSearchField, confirmedSearchInput]);
 
 useEffect(() => {
@@ -992,34 +1263,6 @@ const handleSelectSuggestion = React.useCallback((exp) => {
 
  // number of visible table columns
 const columnCount = 10;
-
- const ABBREVIATION_KEY = {
-  "(E)": "Exclusive",
-  "(P)": "Promo",
-  "(A)": "Alternate Art",
-  "(BA)": "Battle Academy",
-  "(WC)": "World Championship",
-  "(ToT)": "Trick or Trade",
-  "(TK)": "Trainer Kit",
-  "(PPPP)": "Play! Pokémon Prize Pack",
-};
-
- const usedAbbreviations = useMemo(() => {
-  if (!searchPerformed || !displayedData.length) return [];
-
-  const expansions = displayedData.map(row => row["Expansion"] || "");
-  const found = new Set();
-
-  for (const expansion of expansions) {
-    for (const abbr in ABBREVIATION_KEY) {
-      if (expansion.includes(abbr)) {
-        found.add(abbr);
-      }
-    }
-  }
-
-  return Array.from(found);
-}, [displayedData, searchPerformed]);
 
 const latestReleaseDate = useMemo(() => {
   if (!data.length) return null;
@@ -1102,8 +1345,47 @@ if (colIndex === 1) {
   tds.forEach((cell, rowIndex) => {
     const expansion = displayedData[rowIndex]?.["Expansion"] || "";
     const symbols = getSymbolsForExpansion(expansion);
-    const symbolHTML = symbols.map(url => `<img src="${url}" class="set-symbol" />`).join("");
-    const content = symbolHTML + expansion;
+    const baseSymbolsHTML = symbols
+  .map((url) => {
+    const h = getExpansionSymbolHeight(expansion);
+    const { preferred, fallback } = getPreferredExpansionSymbolSrc(url);
+    const src = preferred || fallback || url;
+
+    const isRect =
+      !!preferred ||
+      (typeof src === "string" && src.startsWith("/set-symbols/trimmed/"));
+
+    if (isRect) {
+      // Match the fixed rectangle box used in the real table
+      return `<span class="rect-symbol-box" style="height:${h};width:34px;margin-right:0.375em;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;">
+                <img src="${src}" style="height:100%;width:100%;object-fit:contain;display:block;"
+                     onerror="if('${fallback}' && this.src!=='${fallback}') this.src='${fallback}';" />
+              </span>`;
+    }
+
+    // Non-rectangle symbols: measure as normal img with height rule
+    return `<img src="${src}" class="set-symbol" style="height:${h};width:auto;"
+                 onerror="if('${fallback}' && this.src!=='${fallback}') this.src='${fallback}';" />`;
+  })
+  .join("");
+
+        // 🔹 Half Deck icon (depends on Expansion + Series)
+        const series = displayedData[rowIndex]?.["Series"] || "";
+        const halfIcon = getHalfDeckIcon(expansion, series);
+        const baseName = expansion;
+        const cleanSeries = (series || "").toUpperCase();
+
+        const isEXLatiosLatias =
+          (baseName === "Latios Half Deck" || baseName === "Latias Half Deck") &&
+          cleanSeries === "EX";
+
+        const size = isEXLatiosLatias ? "16px" : "20px";
+
+        const halfIconHTML = halfIcon
+          ? `<img src="${halfIcon}" class="set-symbol" style="height:${size};width:auto;" />`
+          : "";
+
+        const content = baseSymbolsHTML +  halfIconHTML + expansion;
 
     const wrapper = document.createElement("div");
     wrapper.innerHTML = content;
@@ -1254,7 +1536,7 @@ useEffect(() => {
   // 2) Filtering (unchanged logic, just using local trimmedInput)
   const IGNORE_SUFFIXES = [
     "(E)", "(P)", "(A)", "(WC)", "(TK)", "(BA)", "(Classic Collection)", 
-    "(Trainer Gallery)", "(ToT)", "(PPPP)", "(Galarian Gallery)", "(Shiny Vault)"
+    "(Trainer Gallery)", "(ToT)", "(PP)", "(Galarian Gallery)", "(Shiny Vault)"
   ];
 
   function stripSuffix(expansionName) {
@@ -1279,6 +1561,16 @@ useEffect(() => {
       if (trimmedInput === "expedition base set") {
         return fieldValue === trimmedInput;
       }
+
+      if (trimmedInput === "pokémon tcg classic") {
+        // any expansion that starts with "pokémon tcg classic"
+        return fieldValue.startsWith(trimmedInput);
+      }
+
+      if (trimmedInput === "my first battle") {
+        return fieldValue.toLowerCase().startsWith("my first battle");
+      }
+
       const baseFieldValue = stripSuffix(fieldValue);
       const baseInput = stripSuffix(trimmedInput);
       return baseFieldValue === baseInput;
@@ -1533,7 +1825,7 @@ const minWidths = [
   white-space: nowrap;
 }
 
-/* Badge / small status items (usedAbbreviations, latestRelease etc.) */
+/* Badge / small status items (latestRelease etc.) */
 .sticky-top-container > div,
 .search-bar-wrapper > div {
   flex: 0 1 auto;
@@ -1686,19 +1978,39 @@ html, body {
         height: 100%;
       }
 
-      /* ✅ Symbol rendering */
-      .set-symbol,
-      .inline-symbol {
-        height: 1em;
+      .set-symbol {
+        height: 18px;       /* NEW: larger, clearer, consistent */
+        width: auto;
         vertical-align: middle;
         display: inline-block;
+        margin-right: 0.375em;
       }
+
+      .rect-symbol-box {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 18px;      /* the uniform rectangle height */
+        width: 34px;       /* the uniform rectangle width (tweak later if you want) */
+        margin-right: 0.375em;
+        vertical-align: middle;
+      }
+
+      .rect-symbol-box img {
+        height: 100%;
+        width: 100%;
+        object-fit: contain;
+        display: block;
+        image-rendering: -webkit-optimize-contrast;
+        transform: translateZ(0);
+      }
+
       .inline-symbol {
+        height: 1em;        /* KEEP: card-name icons still scale with text */
         width: auto;
         margin-right: 0.25em;
-      }
-      .set-symbol {
-        margin-right: 0.375em;
+        vertical-align: middle;
+        display: inline-block;
       }
 
       /* ✅ Invisible card measurement span */
@@ -1960,40 +2272,52 @@ onKeyDown={(e) => {
   Generate
 </button>
 
-{searchPerformed && (
-  <div style={{
-    height: "64px",
-    marginLeft: "12px",
-    display: "flex",
-    alignItems: "center"
-  }}>
-    {confirmedSearchField === "Expansion" && confirmedSearchInput && (
-      <img
-        src={getLogoForExpansion(confirmedSearchInput)}
-        alt={`${confirmedSearchInput} logo`}
-        style={{
-          height: "100%",
-          maxWidth: "200px",
-          objectFit: "contain"
-        }}
-      />
-    )}
+{searchPerformed && (() => {
+  const isHalfDeck =
+    confirmedSearchField === "Expansion" &&
+    confirmedSearchInput.endsWith("Half Deck");
 
-    {confirmedSearchField === "Card Name" && pokemonId && (
-      <img
-        src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonId}.png`}
-        alt={confirmedSearchInput}
-        style={{
-          height: "100%",
-          objectFit: "contain"
-        }}
-        onError={(e) => {
-          e.target.style.display = "none";
-        }}
-      />
-    )}
-  </div>
-)}
+  return (
+    <div style={{
+      height: "64px",
+      marginLeft: "12px",
+      display: "flex",
+      alignItems: "center"
+    }}>
+
+      {/* Expansion logo — skipped for Half Decks */}
+      {confirmedSearchField === "Expansion" &&
+       confirmedSearchInput &&
+       !isHalfDeck && (
+        <img
+          src={getLogoForExpansion(confirmedSearchInput)}
+          alt={`${confirmedSearchInput} logo`}
+          style={{
+            height: "100%",
+            maxWidth: "200px",
+            objectFit: "contain"
+          }}
+        />
+      )}
+
+      {/* Pokémon sprite fallback logic */}
+      {confirmedSearchField === "Card Name" && pokemonId && (
+        <img
+          src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonId}.png`}
+          alt={confirmedSearchInput}
+          style={{
+            height: "100%",
+            objectFit: "contain"
+          }}
+          onError={(e) => {
+            e.target.style.display = "none";
+          }}
+        />
+      )}
+
+    </div>
+  );
+})()}
 
 <span style={{
   marginLeft: "12px",
@@ -2017,31 +2341,6 @@ onKeyDown={(e) => {
 >
   Export
 </button>
-
-{usedAbbreviations.length > 0 && (
-  <div style={{
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "6px",
-    marginLeft: "12px",
-  }}>
-    {usedAbbreviations.map((abbr) => (
-      <div
-        key={abbr}
-        style={{
-          backgroundColor: "#eef1ff",
-          border: "1px solid #aab",
-          borderRadius: "12px",
-          padding: "4px 8px",
-          fontSize: "13px",
-          whiteSpace: "nowrap",
-        }}
-      >
-        <strong>{abbr}</strong> = {ABBREVIATION_KEY[abbr]}
-      </div>
-    ))}
-  </div>
-)}
 
 <div style={{
   display: "flex",
