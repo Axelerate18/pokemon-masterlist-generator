@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: "Pokémon TCG MasterList Generator",
-  description: "Search and explore every English Pokémon TCG card by name or expansion.",
+  description: "Generate complete Pokémon TCG master lists by Pokémon or expansion in one click, including every known English card variant, and export them instantly for custom editing.",
 };
 
 export default function RootLayout({ children }) {
@@ -23,9 +23,9 @@ export default function RootLayout({ children }) {
       <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pokémon TCG Masterlist Generator</title>
-  <meta name="description" content="Search and explore every English Pokémon TCG card by name or expansion." />
+  <meta name="description" content="Generate complete Pokémon TCG master lists by Pokémon or expansion in one click, including every known English card variant, and export them instantly for custom editing." />
   <meta property="og:title" content="Pokémon TCG Masterlist Generator" />
-  <meta property="og:description" content="Search and explore every English Pokémon TCG card by name or expansion." />
+  <meta property="og:description" content="Generate complete Pokémon TCG master lists by Pokémon or expansion in one click, including every known English card variant, and export them instantly for custom editing." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content={siteUrl} />
   <meta property="og:image" content={`${siteUrl}/preview.png`} />
