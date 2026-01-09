@@ -23,6 +23,7 @@ export default function RootLayout({ children }) {
       <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pokémon TCG Masterlist Generator</title>
+  <link rel="icon" href="/favicon.ico" sizes="any" />
   <meta name="description" content="Generate complete Pokémon TCG master lists by Pokémon or expansion in one click, including every known English card variant, and export them instantly for custom editing." />
   <meta property="og:title" content="Pokémon TCG Masterlist Generator" />
   <meta property="og:description" content="Generate complete Pokémon TCG master lists by Pokémon or expansion in one click, including every known English card variant, and export them instantly for custom editing." />
