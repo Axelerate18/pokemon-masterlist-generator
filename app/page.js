@@ -181,12 +181,6 @@ const speciesToSlug = (name) =>
     .replace(/[:]/g, "")    // Type: Null → type null
     .replace(/\s+/g, "-");  // spaces → hyphens
 
-// Cutoff: first Pokémon introduced in Scarlet & Violet
-const SV_CUTOFF_SPECIES = "Sprigatito";
-
-// Compute index once
-const svCutoffIndex = POKEMON_SPECIES.indexOf(SV_CUTOFF_SPECIES);
-
 // Maps clean expansion names to set symbol URLs
 const setSymbols = {
   "Base Set": "https://images.pokemontcg.io/base1/symbol.png",
@@ -447,9 +441,25 @@ const WOTC_SETS = new Set([
 const RECT_SYMBOL_HEIGHT_PX = 14;  // visual height of rectangle-style symbols
 const RECT_SYMBOL_WIDTH_PX = 24;   // visual width of rectangle-style symbols
 
+function parseExpansionName(expansionName = "") {
+  const raw = (expansionName || "").trim();
+
+  const tags = [];
+  let base = raw;
+
+  // Strip ALL trailing "(...)" groups, e.g. "SV Black Star Promo (PP)" -> "SV Black Star Promo"
+  while (/\s*\([^)]*\)\s*$/.test(base)) {
+    const m = base.match(/\s*\(([^)]*)\)\s*$/);
+    if (!m) break;
+    tags.unshift(m[1].trim());
+    base = base.replace(/\s*\([^)]*\)\s*$/, "").trim();
+  }
+
+  return { raw, base, tags };
+}
+
 function getSymbolsForExpansion(expansionName) {
-  const name = (expansionName || "").trim();
-  const baseName = name.split(" (")[0].trim(); // strips (PP), (P), (E), etc.
+  const { raw: name, base: baseName } = parseExpansionName(expansionName);
 
   // New-style rectangle promos (S&V + ME) – allow suffix variants like "(PP)"
   if (baseName === "SV Black Star Promo") {
@@ -493,31 +503,14 @@ function getSymbolsForExpansion(expansionName) {
   if (name === "Shining Fates (Shiny Vault)") {
     return [setSymbols["Shining Fates"]].filter(Boolean);
   }
-  // Handle expansions that contain one of the ignore suffixes
-  const IGNORE_SUFFIXES = [
-    "(E)", "(P)", "(A)", "(WC)", "(TK)", "(BA)", "(Classic Collection)", 
-    "(Trainer Gallery)", "(ToT)", "(PP)", "(Galarian Gallery)", "(Shiny Vault)"
-  ];
-
-  const ignoreSuffixMatch = IGNORE_SUFFIXES.find(suffix => name.includes(suffix));
-  if (ignoreSuffixMatch) {
-    const baseName = name.split(" (")[0];
-    return [setSymbols[baseName]].filter(Boolean);
-  }
-
-  // Special case: if name ends in (A), add Shiny Vault after expansion symbol
-  if (/\(A\)$/.test(name)) {
-    const baseName = name.replace(/\s*\(A\)$/, "");
-    return [setSymbols[baseName], setSymbols["Shiny Vault"]].filter(Boolean);
-  }
-
-  // Default case
-  return [setSymbols[name]].filter(Boolean);
+  
+    // Default case
+  return [setSymbols[baseName]].filter(Boolean);
 }
 function getLogoForExpansion(expansionName) {
-  const name = expansionName.trim();
+  const { raw: name, base: baseName } = parseExpansionName(expansionName);
 
-  if (/black star promo/i.test(name)) {
+  if (/black star promo/i.test(baseName)) {
     return setLogos["Black Star Promo"];
   }
 
@@ -529,20 +522,7 @@ function getLogoForExpansion(expansionName) {
     return "/icons/My_First_Battle_Logo.png";
   }
 
-  const IGNORE_SUFFIXES = [
-    "(E)", "(P)", "(A)", "(WC)", "(TK)", "(BA)", "(Classic Collection)", 
-    "(Trainer Gallery)", "(ToT)", "(PP)", "(Galarian Gallery)", "(Shiny Vault)"
-  ];
-
-  const matchedSuffix = IGNORE_SUFFIXES.find((suffix) =>
-    name.includes(suffix)
-  );
-  if (matchedSuffix) {
-    const baseName = name.split(" (")[0].trim();
-    return setLogos[baseName];
-  }
-
-  return setLogos[name] || null;
+    return setLogos[baseName] || null;
 }
 
 const typeIcons = {
@@ -559,6 +539,16 @@ const typeIcons = {
     Colorless: "https://archives.bulbagarden.net/media/upload/thumb/1/1d/Colorless-attack.png/30px-Colorless-attack.png",
     Rainbow: "https://archives.bulbagarden.net/media/upload/d/dd/Rainbow-attack.png"
   };
+
+// Lowercase "ex" icon mapping by Series code (uppercase).
+// If a series isn't listed here, lowercase "ex" stays as plain text.
+const EX_ICON_BY_SERIES = {
+  "S&V": "/icons/ex_SV.png",
+  "ME": "/icons/ex_ME.png",
+};
+
+// Series that use the uniform rarity system (icons make sense)
+const UNIFORM_RARITY_SERIES = new Set(["s&v", "me"]);
 
   // Scarlet & Violet rarity icons
 const svRarityIcons = {
@@ -670,7 +660,10 @@ function renderCardNameWithSymbols(cardName, row = {}, overrideSymbolFlags = {})
   const seriesRaw = row["Series"] || "";
   const series = seriesRaw.toLowerCase();
   const seriesCode = seriesRaw.trim().toUpperCase();
-  const isSV = series.includes("s&v");
+
+  const categoryRaw = (row["Category"] || "").trim().toLowerCase();
+  const isPokemonCard = categoryRaw === "pokémon" || categoryRaw === "pokemon";
+  const allowMegaIcon = seriesCode === "XY" && isPokemonCard;
 
   const lowerName = (cardName || "").toLowerCase();
 
@@ -691,30 +684,26 @@ function renderCardNameWithSymbols(cardName, row = {}, overrideSymbolFlags = {})
     return processed;
   }
 
-  // --- Scarlet & Violet ex symbol logic ---
-  if (isSV && /\bex\b/.test(lowerName)) {
-    const imgTag = `<img src="/icons/ex_SV.png" class="inline-symbol" alt="ex icon" />`;
-    processed = processed.replace(/\bex\b/g, imgTag);
-    return processed;
-  }
-
-  // --- Mega Evolution ex symbol logic (ME series + "Mega" + "ex") ---
-  const isMESeries = seriesCode === "ME";
-  const hasMegaWord = /\bmega\b/.test(lowerName);
-  const hasExToken = /\bex\b/.test(lowerName);
-
-  if (isMESeries && hasMegaWord && hasExToken) {
-    const imgTag = `<img src="/icons/ex_ME.png" class="inline-symbol" alt="mega ex icon" />`;
-    // Replace the "ex" token with the new Mega Evolution ex icon
-    processed = processed.replace(/\bex\b/gi, imgTag);
-    return processed;
-  }
+    // --- Lowercase "ex" symbol logic by series ---
+    const exIcon = EX_ICON_BY_SERIES[seriesCode];
+    if (exIcon && /\bex\b/.test(lowerName)) {
+      const imgTag = `<img src="${exIcon}" class="inline-symbol" alt="ex icon" />`;
+      processed = processed.replace(/\bex\b/g, imgTag);
+      return processed;
+    }
 
   // --- Generic symbol replacement (XY Mega, old EX, Gold Star, etc.) ---
   sortedKeys.forEach((key) => {
     if (skipSymbols && ["C", "G", "V"].includes(key)) {
       return; // skip these 3 if flag is set
     }
+
+        // Prevent Trainer cards like "Mega Signal" from triggering the XY Mega icon.
+    // Only allow the Mega icon for Pokémon cards in the XY era.
+    if (key === "Mega" && !allowMegaIcon) {
+      return;
+    }
+
     const escapedKey = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
     const regex = new RegExp(`(?<![\\w-])${escapedKey}(?![\\w-])`, "g");
     const imgTag = `<img src="${symbolMap[key]}" class="inline-symbol" alt="${key} icon" />`;
@@ -767,7 +756,7 @@ function getExpansionSymbolHeight(expansionName) {
 const CardTable = React.memo(function CardTable({
   displayedData,
   tableRef,
-  isViewingSingleSVExpansion,
+  shouldUseRarityIcons,
   minWidths
 }) {
   return (
@@ -820,21 +809,6 @@ const CardTable = React.memo(function CardTable({
         };
 
         const rawExpansion = row["Expansion"] || "";
-
-        // --- S&V species + expansion logic for rarity icons ---
-        const cardName = row["Card Name"] || "";
-        const baseName = cardName.split(/[\s-]/)[0];
-        const speciesIndex = POKEMON_SPECIES.indexOf(baseName);
-
-        // Species introduced in S&V or later?
-        const isSVSpecies =
-          speciesIndex !== -1 && speciesIndex >= svCutoffIndex;
-
-        // Use S&V rarity icons if:
-        // 1. Viewing an S&V expansion OR
-        // 2. Searching for a Pokémon from S&V species and onward
-        const shouldUseSVSymbols =
-          isViewingSingleSVExpansion || isSVSpecies;
 
         return (
           <tr key={i}>
@@ -932,12 +906,6 @@ const CardTable = React.memo(function CardTable({
               // Lookup in the species array
               const speciesIndex = POKEMON_SPECIES.indexOf(baseName);
 
-              // Species introduced in S&V or later?
-              const isSVSpecies = speciesIndex !== -1 && speciesIndex >= svCutoffIndex;
-
-              const shouldUseSVSymbols =
-                isViewingSingleSVExpansion || isSVSpecies;
-
               const series = (row["Series"] || "").toLowerCase();
               const lowerName = cardName.toLowerCase();
 
@@ -967,7 +935,7 @@ const CardTable = React.memo(function CardTable({
             })()}
             {renderCell(setNumber, "setNumber")}
             <td className="rarity">
-              {shouldUseSVSymbols && svRarityIcons[row["Rarity"]] ? (
+              {shouldUseRarityIcons && svRarityIcons[row["Rarity"]] ? (
                 <div style={{ display: "flex", justifyContent: "center" }}>
                   <img
                     src={svRarityIcons[row["Rarity"]]}
@@ -1249,12 +1217,13 @@ useEffect(() => {
   return searchPerformed ? filteredData : data;
 }, [searchPerformed, filteredData, data]);
 
-// Detect if we are viewing a *single* S&V expansion
-  const isViewingSingleSVExpansion =
-    confirmedSearchField === "Expansion" &&
-    confirmedSearchInput.trim() !== "" &&
-    displayedData.length > 0 &&
-    (displayedData[0]["Series"] || "").toLowerCase() === "s&v";
+// If even ONE visible row is from a pre-uniform series, disable rarity icons
+  const hasPreUniformRows = displayedData.some(row => {
+    const series = (row["Series"] || "").trim().toLowerCase();
+    return !UNIFORM_RARITY_SERIES.has(series);
+  });
+
+  const shouldUseRarityIcons = !hasPreUniformRows;
 
 const handleSelectSuggestion = React.useCallback((exp) => {
   setSearchInput(exp);
@@ -1533,22 +1502,6 @@ useEffect(() => {
     return;
   }
 
-  // 2) Filtering (unchanged logic, just using local trimmedInput)
-  const IGNORE_SUFFIXES = [
-    "(E)", "(P)", "(A)", "(WC)", "(TK)", "(BA)", "(Classic Collection)", 
-    "(Trainer Gallery)", "(ToT)", "(PP)", "(Galarian Gallery)", "(Shiny Vault)"
-  ];
-
-  function stripSuffix(expansionName) {
-    expansionName = expansionName.toLowerCase().trim();
-    for (const suffix of IGNORE_SUFFIXES) {
-      if (expansionName.endsWith(suffix.toLowerCase())) {
-        return expansionName.slice(0, -suffix.length).trim();
-      }
-    }
-    return expansionName;
-  }
-
   let filtered = data.filter((row) => {
     const fieldValue = (row[searchField] || "").toLowerCase().trim();
 
@@ -1571,9 +1524,10 @@ useEffect(() => {
         return fieldValue.toLowerCase().startsWith("my first battle");
       }
 
-      const baseFieldValue = stripSuffix(fieldValue);
-      const baseInput = stripSuffix(trimmedInput);
+      const baseFieldValue = parseExpansionName(fieldValue).base.toLowerCase();
+      const baseInput = parseExpansionName(committed).base.toLowerCase();
       return baseFieldValue === baseInput;
+
     }
 
     // Default fallback
@@ -2467,7 +2421,7 @@ onKeyDown={(e) => {
     tableRef={tableRef}
     columnCount={columnCount}
     minWidths={minWidths}
-    isViewingSingleSVExpansion={isViewingSingleSVExpansion}
+      shouldUseRarityIcons={shouldUseRarityIcons}
   />
 )}
 
