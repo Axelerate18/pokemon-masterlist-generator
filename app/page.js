@@ -350,7 +350,7 @@ function getPreferredExpansionSymbolSrc(originalUrl) {
   // Only try trimmed for modern rectangle-style codes.
   // sv...  (SV era), me... (Mega Evolution era), mcd... (McDonald's)
   const isRectangleStyle =
-    code.startsWith("sv") || code.startsWith("me") || code.startsWith("mcd");
+  /^([a-z]?sv)/.test(code) || code.startsWith("me") || code.startsWith("mcd");
 
   if (!isRectangleStyle) return { preferred: null, fallback: originalUrl };
 
@@ -544,7 +544,6 @@ const typeIcons = {
 // If a series isn't listed here, lowercase "ex" stays as plain text.
 const EX_ICON_BY_SERIES = {
   "S&V": "/icons/ex_SV.png",
-  "ME": "/icons/ex_ME.png",
 };
 
 // Series that use the uniform rarity system (icons make sense)
@@ -685,12 +684,19 @@ function renderCardNameWithSymbols(cardName, row = {}, overrideSymbolFlags = {})
   }
 
     // --- Lowercase "ex" symbol logic by series ---
-    const exIcon = EX_ICON_BY_SERIES[seriesCode];
-    if (exIcon && /\bex\b/.test(lowerName)) {
-      const imgTag = `<img src="${exIcon}" class="inline-symbol" alt="ex icon" />`;
-      processed = processed.replace(/\bex\b/g, imgTag);
-      return processed;
-    }
+  let exIcon = EX_ICON_BY_SERIES[seriesCode];
+
+  // ME nuance: ME ex icon is only for Mega Pokémon; non-Mega ex in ME uses the S&V ex icon
+  if (seriesCode === "ME") {
+    const hasMegaWord = /\bmega\b/.test(lowerName);
+    exIcon = hasMegaWord ? "/icons/ex_ME.png" : "/icons/ex_SV.png";
+  }
+
+  if (exIcon && /\bex\b/.test(lowerName)) {
+    const imgTag = `<img src="${exIcon}" class="inline-symbol" alt="ex icon" />`;
+    processed = processed.replace(/\bex\b/g, imgTag);
+    return processed;
+  }
 
   // --- Generic symbol replacement (XY Mega, old EX, Gold Star, etc.) ---
   sortedKeys.forEach((key) => {
