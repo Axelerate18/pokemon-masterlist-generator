@@ -1122,28 +1122,38 @@ useEffect(() => {
 
   useEffect(() => {
   async function fetchData() {
-  try {
-    const res = await fetch("/api/cards");
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    try {
+      // 1) Get short-lived token
+      const tokenRes = await fetch("/api/token", { cache: "no-store" });
+      if (!tokenRes.ok) throw new Error(`Token error! status: ${tokenRes.status}`);
+      const tokenJson = await tokenRes.json();
+      const token = tokenJson.token;
 
-    const data = await res.json();
-    setData(data.cards);
+      // 2) Fetch cards using Authorization header
+      const res = await fetch("/api/cards", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
-    const cleanedExpansions = [...new Set(
-      data.cards
-        .map((row) => row["Expansion"])
-        .filter(Boolean)
-        .map((exp) => exp.split(" (")[0].trim())
-    )].sort();
+      const data = await res.json();
+      setData(data.cards);
 
-setExpansionSuggestions(cleanedExpansions);
+      const cleanedExpansions = [...new Set(
+        data.cards
+          .map((row) => row["Expansion"])
+          .filter(Boolean)
+          .map((exp) => exp.split(" (")[0].trim())
+      )].sort();
 
-  } catch (err) {
-    console.error("Error loading card data:", err);
-  } finally {
-    setLoading(false); // ✅ <- Always unset loading here
+      setExpansionSuggestions(cleanedExpansions);
+    } catch (err) {
+      console.error("Error loading card data:", err);
+    } finally {
+      setLoading(false);
+    }
   }
-}
 
   fetchData();
 }, []);

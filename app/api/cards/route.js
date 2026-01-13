@@ -1,6 +1,49 @@
 import { google } from "googleapis";
 import { NextResponse } from "next/server";
 import { Redis } from "@upstash/redis";
+import crypto from "crypto";
+
+function base64urlDecode(input) {
+  input = input.replace(/-/g, "+").replace(/_/g, "/");
+  while (input.length % 4) input += "=";
+  return Buffer.from(input, "base64").toString("utf8");
+}
+
+function sign(data, secret) {
+  return crypto
+    .createHmac("sha256", secret)
+    .update(data)
+    .digest("base64")
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+}
+
+function verifyToken(req) {
+  const header = req.headers.get("authorization");
+  if (!header || !header.startsWith("Bearer ")) return false;
+
+  const token = header.slice(7);
+  const [payload, signature] = token.split(".");
+  if (!payload || !signature) return false;
+
+  const secret = process.env.API_TOKEN_SECRET;
+  if (!secret) return false;
+
+  const expected = sign(payload, secret);
+  if (expected !== signature) return false;
+
+  let data;
+  try {
+    data = JSON.parse(base64urlDecode(payload));
+  } catch {
+    return false;
+  }
+
+  if (Date.now() / 1000 > data.exp) return false;
+
+  return true;
+}
 
 // Upstash Redis client (shared across serverless instances)
 const redis =
@@ -36,8 +79,17 @@ async function rateLimit(req, { limit = 5, windowSeconds = 60 } = {}) {
 
 export async function GET(req) {
   try {
-    // 1) Rate limit first
+    // Token check FIRST
+    if (!verifyToken(req)) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401, headers: { "Cache-Control": "no-store" } }
+      );
+    }
+
+    // Then rate limit
     const rl = await rateLimit(req, { limit: 5, windowSeconds: 60 });
+
     if (!rl.ok) {
       return NextResponse.json(
         { error: "Too many requests. Please slow down." },
