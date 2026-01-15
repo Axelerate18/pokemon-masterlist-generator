@@ -753,6 +753,10 @@ function extractPokemonName(cardName) {
     .replace(/\s+/g, "-"); // turn spaces into hyphens
 }
 
+function escapeRegExp(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function getExpansionSymbolHeight(expansionName) {
   const baseName = (expansionName || "").split(" (")[0];
   const isWotc = WOTC_SETS.has(baseName) && baseName !== "Base Set 2";
@@ -1522,7 +1526,12 @@ useEffect(() => {
     const fieldValue = (row[searchField] || "").toLowerCase().trim();
 
     if (searchField === "Card Name") {
-      const regex = new RegExp(`\\b${trimmedInput}\\b`, "i");
+      const safe = escapeRegExp(trimmedInput);
+
+      // Prevent matches like "porygon" -> "porygon-z"
+      // because \b treats "-" as a boundary.
+      const regex = new RegExp(`\\b${safe}\\b(?!-[a-z])`, "i");
+
       return regex.test(fieldValue);
     }
 
