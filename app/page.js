@@ -335,7 +335,8 @@ const setSymbols = {
   "Black Bolt": "https://images.pokemontcg.io/zsv10pt5/symbol.png",
   "White Flare": "https://images.pokemontcg.io/rsv10pt5/symbol.png",
   "Mega Evolution": "https://images.pokemontcg.io/me1/symbol.png",
-  "Phantasmal Flames": "https://images.pokemontcg.io/me2/symbol.png"
+  "Phantasmal Flames": "https://images.pokemontcg.io/me2/symbol.png",
+  "Ascended Heroes": "https://images.pokemontcg.io/me2pt5/symbol.png"
 };
 
 function getPreferredExpansionSymbolSrc(originalUrl) {
@@ -564,6 +565,7 @@ const svRarityIcons = {
   "Mega Hyper Rare": "/icons/Rarity_MHR.png",
   "Black White Rare": "/icons/Rarity_BW.png",
   "ACE SPEC Rare": "/icons/Rarity_AS.png",
+  "Mega Attack Rare": "/icons/Rarity_MAR.png",
 };
 
 function renderCardNameWithSymbols(cardName, row = {}, overrideSymbolFlags = {}) {
