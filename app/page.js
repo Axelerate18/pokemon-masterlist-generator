@@ -25,7 +25,7 @@ const POKEMON_SPECIES = [
   "Wartortle","Blastoise","Caterpie","Metapod","Butterfree","Weedle","Kakuna",
   "Beedrill","Pidgey","Pidgeotto","Pidgeot","Rattata","Raticate","Spearow",
   "Fearow","Ekans","Arbok","Pikachu","Raichu","Sandshrew","Sandslash",
-  "Nidoran♀","Nidorina","Nidoqueen","Nidoran♂","Nidorino","Nidoking","Clefairy",
+  "Nidoran ♀","Nidorina","Nidoqueen","Nidoran ♂","Nidorino","Nidoking","Clefairy",
   "Clefable","Vulpix","Ninetales","Jigglypuff","Wigglytuff","Zubat","Golbat",
   "Oddish","Gloom","Vileplume","Paras","Parasect","Venonat","Venomoth",
   "Diglett","Dugtrio","Meowth","Persian","Psyduck","Golduck","Mankey",
@@ -173,13 +173,24 @@ const POKEMON_SPECIES = [
   "Iron Boulder","Iron Crown","Terapagos","Pecharunt"
 ];
 
-// Turn a display name into a PokeAPI slug
 const speciesToSlug = (name) =>
-  name
+  (name || "")
     .toLowerCase()
-    .replace(/['.]/g, "")   // Mr. Mime → mr mime, Farfetch'd → farfetchd
-    .replace(/[:]/g, "")    // Type: Null → type null
-    .replace(/\s+/g, "-");  // spaces → hyphens
+    .replace(/é/g, "e")
+    .replace(/♀/g, "-f")
+    .replace(/♂/g, "-m")
+    .replace(/['.]/g, "")
+    .replace(/[:]/g, "")
+    .replace(/\s+/g, "-");
+
+function normalizePokemonName(value) {
+  return (value || "")
+    .toLowerCase()
+    .replace(/é/g, "e")
+    .replace(/♀/g, "f")
+    .replace(/♂/g, "m")
+    .trim();
+}
 
 // Maps clean expansion names to set symbol URLs
 const setSymbols = {
@@ -1048,9 +1059,8 @@ export default function Page() {
   const generateButtonRef = useRef(null);
   const debounceRef = useRef(null);
   const inputRef = useRef(null);
-  const descriptionRef = useRef(null);
-  const bugRef = useRef(null);
-
+  const DISCORD_INVITE_URL = "https://discord.gg/qvV29kWW7B";
+  
   const BASE_FONT_SIZE = 14;
   const fontSize = BASE_FONT_SIZE;
   const [searchField, setSearchField] = useState("Card Name");
@@ -1065,32 +1075,6 @@ export default function Page() {
     visible: false
   });
   const [highlightIndex, setHighlightIndex] = useState(-1);
-  const [showReportForm, setShowReportForm] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const updateReportField = (field, value) => {
-  setReportData(prev => ({ ...prev, [field]: value }));
-};
-  const [reportData, setReportData] = useState({
-    type: "", // Section 1
-    errorCategory: "", // Section 2 — only for "Wrong/Missing Data"
-    expansion: "",
-    setNumber: "",
-    description: "",
-    bug: "",
-  });
-
-  useEffect(() => {
-  const resize = (el) => {
-    if (el) {
-      el.style.height = "auto";
-      el.style.height = `${el.scrollHeight}px`;
-    }
-  };
-
-  resize(descriptionRef.current);
-  resize(bugRef.current);
-}, [reportData.description, reportData.bug]);
-
 
   useEffect(() => {
     const updateSuggestionPos = () => {
@@ -1514,7 +1498,10 @@ useEffect(() => {
   const handleSearch = () => {
   // 1) Work with a local snapshot of what the user typed (avoids async setState timing)
   const committed = searchInput.trim();
-  const trimmedInput = committed.toLowerCase();
+  const trimmedInput =
+  searchField === "Card Name"
+    ? normalizePokemonName(committed)
+    : committed.toLowerCase();
   if (!trimmedInput) {
     setFilteredData([]);
     setConfirmedSearchInput("");
@@ -1525,16 +1512,20 @@ useEffect(() => {
   }
 
   let filtered = data.filter((row) => {
-    const fieldValue = (row[searchField] || "").toLowerCase().trim();
+    const fieldValue =
+      searchField === "Card Name"
+        ? normalizePokemonName(row[searchField] || "")
+        : (row[searchField] || "").toLowerCase().trim();
 
     if (searchField === "Card Name") {
-      const safe = escapeRegExp(trimmedInput);
-
-      // Prevent matches like "porygon" -> "porygon-z"
-      // because \b treats "-" as a boundary.
-      const regex = new RegExp(`\\b${safe}\\b(?!-[a-z])`, "i");
-
-      return regex.test(fieldValue);
+      return (
+        fieldValue === trimmedInput ||
+        fieldValue.startsWith(trimmedInput + " ") ||
+        fieldValue.startsWith(trimmedInput + "-") ||
+        fieldValue.includes(" " + trimmedInput + " ") ||
+        fieldValue.includes(" " + trimmedInput + "-") ||
+        fieldValue.endsWith(" " + trimmedInput)
+      );
     }
 
     if (searchField === "Expansion") {
@@ -2386,59 +2377,46 @@ onKeyDown={(e) => {
   )}
 
   <span style={{
-    fontSize: "13px",
-    color: "#555",
-    fontStyle: "italic",
-    whiteSpace: "nowrap"
-  }}>
-    Missing or wrong data? Bug? →
-  </span>
+  fontSize: "13px",
+  color: "#555",
+  fontStyle: "italic",
+  whiteSpace: "nowrap"
+}}>
+  Missing cards, wrong data, bugs, or feature discussion →
+</span>
 
-  <button
-    onClick={() => setShowReportForm(prev => !prev)}
-    style={{
-      backgroundColor: "#ffd",
-      color: "#333",
-      border: "1px solid #aaa",
-      fontWeight: "bold",
-    }}
-  >
-    Report
-  </button>
+<a
+  href={DISCORD_INVITE_URL}
+  target="_blank"
+  rel="noopener noreferrer"
+  style={{
+    display: "inline-block",
+    backgroundColor: "#5865F2",
+    color: "#fff",
+    border: "1px solid #4c59d4",
+    fontWeight: "bold",
+    textDecoration: "none",
+    padding: "8px 12px",
+    borderRadius: "6px",
+    whiteSpace: "nowrap",
+    transition: "transform 0.1s ease, box-shadow 0.1s ease"
+  }}
+  onMouseEnter={e => {
+    e.currentTarget.style.transform = "translateY(-1px)";
+    e.currentTarget.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
+  }}
+  onMouseLeave={e => {
+    e.currentTarget.style.transform = "translateY(0)";
+    e.currentTarget.style.boxShadow = "none";
+  }}
+>
+  Join Discord
+</a>
 </div>
 
   </div>
 </div>
     <div className="table-scroll-wrapper">
-  
-{showReportForm && (
-  <div style={{
-    position: "absolute",
-    top: "61px",
-    right: "23px",
-    zIndex: 99999,
-    width: "100%",
-    maxWidth: "600px",
-    backgroundColor: "#fffceb",
-    border: "1px solid #ccc",
-    borderRadius: "6px",
-    padding: "16px",
-    boxShadow: "0 4px 8px rgba(0,0,0,0.1)"
-  }}>
-    <iframe
-      src="https://docs.google.com/forms/d/e/1FAIpQLSdlfjhktECan559jo7fKABV08IrGDtKIr3PKD04DUE405KenQ/viewform?embedded=true"
-      width="100%"
-      height="800"
-      frameBorder="0"
-      marginHeight="0"
-      marginWidth="0"
-      title="Card Report Form"
-      style={{ border: "none" }}
-    >
-      Loading…
-    </iframe>
-  </div>
-)}
 
 {searchPerformed && (
   <CardTable
