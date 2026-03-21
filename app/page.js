@@ -549,7 +549,7 @@ const typeIcons = {
     Fairy: "https://archives.bulbagarden.net/media/upload/thumb/4/40/Fairy-attack.png/30px-Fairy-attack.png",
     Dragon: "https://archives.bulbagarden.net/media/upload/thumb/8/8a/Dragon-attack.png/30px-Dragon-attack.png",
     Colorless: "https://archives.bulbagarden.net/media/upload/thumb/1/1d/Colorless-attack.png/30px-Colorless-attack.png",
-    Rainbow: "https://archives.bulbagarden.net/media/upload/d/dd/Rainbow-attack.png"
+    Rainbow: "https://archives.bulbagarden.net/media/upload/thumb/d/dd/Rainbow-attack.png/30px-Rainbow-attack.png"
   };
 
 // Lowercase "ex" icon mapping by Series code (uppercase).
