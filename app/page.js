@@ -56,7 +56,7 @@ const POKEMON_SPECIES = [
   "Skarmory","Houndour","Houndoom","Kingdra","Phanpy","Donphan","Porygon2",
   "Stantler","Smeargle","Tyrogue","Hitmontop","Smoochum","Elekid","Magby",
   "Miltank","Blissey","Raikou","Entei","Suicune","Larvitar","Pupitar",
-  "Tyranitar","Lugia","Ho-oh","Celebi","Treecko","Grovyle","Sceptile",
+  "Tyranitar","Lugia","Ho-Oh","Celebi","Treecko","Grovyle","Sceptile",
   "Torchic","Combusken","Blaziken","Mudkip","Marshtomp","Swampert","Poochyena",
   "Mightyena","Zigzagoon","Linoone","Wurmple","Silcoon","Beautifly","Cascoon",
   "Dustox","Lotad","Lombre","Ludicolo","Seedot","Nuzleaf","Shiftry","Taillow",
@@ -189,6 +189,7 @@ function normalizePokemonName(value) {
     .replace(/é/g, "e")
     .replace(/♀/g, "f")
     .replace(/♂/g, "m")
+    .replace(/\btex\b/g, "ex")
     .trim();
 }
 
@@ -1518,13 +1519,21 @@ useEffect(() => {
         : (row[searchField] || "").toLowerCase().trim();
 
     if (searchField === "Card Name") {
+      if (trimmedInput === "porygon" && fieldValue.includes("porygon-z")) {
+        return false;
+      }
+
       return (
         fieldValue === trimmedInput ||
         fieldValue.startsWith(trimmedInput + " ") ||
         fieldValue.startsWith(trimmedInput + "-") ||
+        fieldValue.startsWith(trimmedInput + ",") ||
         fieldValue.includes(" " + trimmedInput + " ") ||
         fieldValue.includes(" " + trimmedInput + "-") ||
-        fieldValue.endsWith(" " + trimmedInput)
+        fieldValue.includes(" " + trimmedInput + ",") ||
+        fieldValue.endsWith(" " + trimmedInput) ||
+        fieldValue.endsWith("-" + trimmedInput) ||
+        fieldValue.includes("-" + trimmedInput + " ")
       );
     }
 
