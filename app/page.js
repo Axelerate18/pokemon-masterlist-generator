@@ -1528,12 +1528,17 @@ useEffect(() => {
         fieldValue.startsWith(trimmedInput + " ") ||
         fieldValue.startsWith(trimmedInput + "-") ||
         fieldValue.startsWith(trimmedInput + ",") ||
+        fieldValue.startsWith(trimmedInput + "'s ") ||
         fieldValue.includes(" " + trimmedInput + " ") ||
         fieldValue.includes(" " + trimmedInput + "-") ||
         fieldValue.includes(" " + trimmedInput + ",") ||
+        fieldValue.includes(" " + trimmedInput + "'s ") ||
         fieldValue.endsWith(" " + trimmedInput) ||
         fieldValue.endsWith("-" + trimmedInput) ||
-        fieldValue.includes("-" + trimmedInput + " ")
+        fieldValue.endsWith(" " + trimmedInput + "'s") ||
+        fieldValue.endsWith("-" + trimmedInput + "'s") ||
+        fieldValue.includes("-" + trimmedInput + " ") ||
+        fieldValue.includes("-" + trimmedInput + "'s ")
       );
     }
 
