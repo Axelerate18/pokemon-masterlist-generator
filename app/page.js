@@ -193,191 +193,205 @@ function normalizePokemonName(value) {
     .trim();
 }
 
-// Maps clean expansion names to set symbol URLs
-const setSymbols = {
-  "Base Set": "https://images.pokemontcg.io/base1/symbol.png",
-  Jungle: "https://images.pokemontcg.io/base2/symbol.png",
-  Fossil: "https://images.pokemontcg.io/base3/symbol.png",
-  "Base Set 2": "https://images.pokemontcg.io/base4/symbol.png",
-  "Team Rocket": "https://images.pokemontcg.io/base5/symbol.png",
-  "Black Star Promo": "https://images.pokemontcg.io/basep/symbol.png",
-  "Gym Heroes": "https://images.pokemontcg.io/gym1/symbol.png",
-  "Gym Challenge": "https://images.pokemontcg.io/gym2/symbol.png",
-  "Neo Genesis": "https://images.pokemontcg.io/neo1/symbol.png",
-  "Neo Discovery": "https://images.pokemontcg.io/neo2/symbol.png",
-  "Neo Revelation": "https://images.pokemontcg.io/neo3/symbol.png",
-  "Neo Destiny": "https://images.pokemontcg.io/neo4/symbol.png",
-  "Legendary Collection": "https://images.pokemontcg.io/base6/symbol.png",
-  "Expedition Base Set": "https://images.pokemontcg.io/ecard1/symbol.png",
-  Aquapolis: "https://images.pokemontcg.io/ecard2/symbol.png",
-  Skyridge: "https://images.pokemontcg.io/ecard3/symbol.png",
-  "Ruby & Sapphire": "https://images.pokemontcg.io/ex1/symbol.png",
-  Sandstorm: "https://images.pokemontcg.io/ex2/symbol.png",
-  Dragon: "https://images.pokemontcg.io/ex3/symbol.png",
-  "Team Magma vs Team Aqua": "https://images.pokemontcg.io/ex4/symbol.png",
-  "Hidden Legends": "https://images.pokemontcg.io/ex5/symbol.png",
-  "FireRed & LeafGreen": "https://images.pokemontcg.io/ex6/symbol.png",
-  "Team Rocket Returns": "https://images.pokemontcg.io/ex7/symbol.png",
-  Deoxys: "https://images.pokemontcg.io/ex8/symbol.png",
-  Emerald: "https://images.pokemontcg.io/ex9/symbol.png",
-  "Unseen Forces": "https://images.pokemontcg.io/ex10/symbol.png",
-  "Delta Species": "https://images.pokemontcg.io/ex11/symbol.png",
-  "Legend Maker": "https://images.pokemontcg.io/ex12/symbol.png",
-  "Holon Phantoms": "https://images.pokemontcg.io/ex13/symbol.png",
-  "Crystal Guardians": "https://images.pokemontcg.io/ex14/symbol.png",
-  "Dragon Frontiers": "https://images.pokemontcg.io/ex15/symbol.png",
-  "Power Keepers": "https://images.pokemontcg.io/ex16/symbol.png",
-  "POP Series 1": "https://images.pokemontcg.io/pop1/symbol.png",
-  "POP Series 2": "https://images.pokemontcg.io/pop2/symbol.png",
-  "POP Series 3": "https://images.pokemontcg.io/pop3/symbol.png",
-  "POP Series 4": "https://images.pokemontcg.io/pop4/symbol.png",
-  "POP Series 5": "https://images.pokemontcg.io/pop5/symbol.png",
-  "POP Series 6": "https://images.pokemontcg.io/pop6/symbol.png",
-  "POP Series 7": "https://images.pokemontcg.io/pop7/symbol.png",
-  "POP Series 8": "https://images.pokemontcg.io/pop8/symbol.png",
-  "POP Series 9": "https://images.pokemontcg.io/pop9/symbol.png",
-  "Diamond & Pearl": "https://images.pokemontcg.io/dp1/symbol.png",
-  "Mysterious Treasures": "https://images.pokemontcg.io/dp2/symbol.png",
-  "Secret Wonders": "https://images.pokemontcg.io/dp3/symbol.png",
-  "Great Encounters": "https://images.pokemontcg.io/dp4/symbol.png",
-  "Majestic Dawn": "https://images.pokemontcg.io/dp5/symbol.png",
-  "Legends Awakened": "https://images.pokemontcg.io/dp6/symbol.png",
-  "Stormfront": "https://images.pokemontcg.io/dp7/symbol.png",
-  "Platinum": "https://images.pokemontcg.io/pl1/symbol.png",
-  "Rising Rivals": "https://images.pokemontcg.io/pl2/symbol.png",
-  "Supreme Victors": "https://images.pokemontcg.io/pl3/symbol.png",
-  "Arceus": "https://images.pokemontcg.io/pl4/symbol.png",
-  "HeartGold & SoulSilver": "https://images.pokemontcg.io/hgss1/symbol.png",
-  "Unleashed": "https://images.pokemontcg.io/hgss2/symbol.png",
-  "Undaunted": "https://images.pokemontcg.io/hgss3/symbol.png",
-  "Triumphant": "https://images.pokemontcg.io/hgss4/symbol.png",
-  "Call of Legends": "https://images.pokemontcg.io/col1/symbol.png",
-  "Southern Islands": "https://images.pokemontcg.io/si1/symbol.png",
-  "Rumble": "https://images.pokemontcg.io/ru1/symbol.png",
-  "Black & White": "https://images.pokemontcg.io/bw1/symbol.png",
-  "Emerging Powers": "https://images.pokemontcg.io/bw2/symbol.png",
-  "Noble Victories": "https://images.pokemontcg.io/bw3/symbol.png",
-  "Next Destinies": "https://images.pokemontcg.io/bw4/symbol.png",
-  "Dark Explorers": "https://images.pokemontcg.io/bw5/symbol.png",
-  "Dragons Exalted": "https://images.pokemontcg.io/bw6/symbol.png",
-  "Boundaries Crossed": "https://images.pokemontcg.io/bw7/symbol.png",
-  "Plasma Storm": "https://images.pokemontcg.io/bw8/symbol.png",
-  "Plasma Freeze": "https://images.pokemontcg.io/bw9/symbol.png",
-  "Plasma Blast": "https://images.pokemontcg.io/bw10/symbol.png",
-  "Legendary Treasures": "https://images.pokemontcg.io/bw11/symbol.png",
-  "Best of Game": "https://images.pokemontcg.io/bp/symbol.png",
-  "McDonald's Collection 2011": "https://images.pokemontcg.io/mcd11/symbol.png",
-  "McDonald's Collection 2012": "https://images.pokemontcg.io/mcd12/symbol.png",
-  "McDonald's Collection 2014": "https://images.pokemontcg.io/mcd14/symbol.png",
-  "McDonald's Collection 2015": "https://images.pokemontcg.io/mcd15/symbol.png",
-  "McDonald's Collection 2016": "https://images.pokemontcg.io/mcd16/symbol.png",
-  "McDonald's Collection 2017": "https://images.pokemontcg.io/mcd17/symbol.png",
-  "McDonald's Collection 2018": "https://images.pokemontcg.io/mcd18/symbol.png",
-  "McDonald's Collection 2019": "https://images.pokemontcg.io/mcd19/symbol.png",
-  "McDonald's Collection 2021": "https://images.pokemontcg.io/mcd21/symbol.png",
-  "McDonald's Collection 2022": "https://images.pokemontcg.io/mcd22/symbol.png",
-  "McDonald's Collection 2023": "https://images.pokemontcg.io/mcd23/symbol.png",
-  "McDonald's Collection 2024": "https://images.pokemontcg.io/mcd24/symbol.png",
-  "Pokémon Futsal": "https://images.pokemontcg.io/fut20/symbol.png",
-  "Kalos Starter Set": "https://images.pokemontcg.io/xy0/symbol.png",
-  "XY": "https://images.pokemontcg.io/xy1/symbol.png",
-  "Flashfire": "https://images.pokemontcg.io/xy2/symbol.png",
-  "Furious Fists": "https://images.pokemontcg.io/xy3/symbol.png",
-  "Phantom Forces": "https://images.pokemontcg.io/xy4/symbol.png",
-  "Primal Clash": "https://images.pokemontcg.io/xy5/symbol.png",
-  "Roaring Skies": "https://images.pokemontcg.io/xy6/symbol.png",
-  "Ancient Origins": "https://images.pokemontcg.io/xy7/symbol.png",
-  "BREAKthrough": "https://images.pokemontcg.io/xy8/symbol.png",
-  "BREAKpoint": "https://images.pokemontcg.io/xy9/symbol.png",
-  "Fates Collide": "https://images.pokemontcg.io/xy10/symbol.png",
-  "Steam Siege": "https://images.pokemontcg.io/xy11/symbol.png",
-  "Evolutions": "https://images.pokemontcg.io/xy12/symbol.png",
-  "Double Crisis": "https://images.pokemontcg.io/dc1/symbol.png",
-  "Generations": "https://images.pokemontcg.io/g1/symbol.png",
-  "Dragon Vault": "https://images.pokemontcg.io/dv1/symbol.png",
-  "Sun & Moon": "https://images.pokemontcg.io/sm1/symbol.png",
-  "Guardians Rising": "https://images.pokemontcg.io/sm2/symbol.png",
-  "Burning Shadows": "https://images.pokemontcg.io/sm3/symbol.png",
-  "Crimson Invasion": "https://images.pokemontcg.io/sm4/symbol.png",
-  "Ultra Prism": "https://images.pokemontcg.io/sm5/symbol.png",
-  "Forbidden Light": "https://images.pokemontcg.io/sm6/symbol.png",
-  "Celestial Storm": "https://images.pokemontcg.io/sm7/symbol.png",
-  "Lost Thunder": "https://images.pokemontcg.io/sm8/symbol.png",
-  "Team Up": "https://images.pokemontcg.io/sm9/symbol.png",
-  "Unbroken Bonds": "https://images.pokemontcg.io/sm10/symbol.png",
-  "Unified Minds": "https://images.pokemontcg.io/sm11/symbol.png",
-  "Cosmic Eclipse": "https://images.pokemontcg.io/sm12/symbol.png",
-  "Hidden Fates": "https://images.pokemontcg.io/sm115/symbol.png",
-  "Shining Legends": "https://images.pokemontcg.io/sm35/symbol.png",
-  "Dragon Majesty": "https://images.pokemontcg.io/sm75/symbol.png",
-  "Detective Pikachu": "https://images.pokemontcg.io/det1/symbol.png",
-  "Sword & Shield": "https://images.pokemontcg.io/swsh1/symbol.png",
-  "Rebel Clash": "https://images.pokemontcg.io/swsh2/symbol.png",
-  "Darkness Ablaze": "https://images.pokemontcg.io/swsh3/symbol.png",
-  "Champion's Path": "https://images.pokemontcg.io/swsh35/symbol.png",
-  "Vivid Voltage": "https://images.pokemontcg.io/swsh4/symbol.png",
-  "Shining Fates": "https://images.pokemontcg.io/swsh45/symbol.png",
-  "Battle Styles": "https://images.pokemontcg.io/swsh5/symbol.png",
-  "Chilling Reign": "https://images.pokemontcg.io/swsh6/symbol.png",
-  "Evolving Skies": "https://images.pokemontcg.io/swsh7/symbol.png",
-  "Celebrations": "https://images.pokemontcg.io/cel25/symbol.png",
-  "Fusion Strike": "https://images.pokemontcg.io/swsh8/symbol.png",
-  "Brilliant Stars": "https://images.pokemontcg.io/swsh9/symbol.png",
-  "Astral Radiance": "https://images.pokemontcg.io/swsh10/symbol.png",
-  "Lost Origin": "https://images.pokemontcg.io/swsh11/symbol.png",
-  "Silver Tempest": "https://images.pokemontcg.io/swsh12/symbol.png",
-  "Pokémon GO": "https://images.pokemontcg.io/pgo/symbol.png",
-  "Crown Zenith": "https://images.pokemontcg.io/swsh12pt5/symbol.png",
-  "Shiny Vault": "https://images.pokemontcg.io/sma/symbol.png",
-  "Hidden Fates": "https://images.pokemontcg.io/sm115/symbol.png",
-  "Scarlet & Violet": "https://images.pokemontcg.io/sv1/symbol.png",
-  "Paldea Evolved": "https://images.pokemontcg.io/sv2/symbol.png",
-  "Obsidian Flames": "https://images.pokemontcg.io/sv3/symbol.png",
-  "151": "https://images.pokemontcg.io/sv3pt5/symbol.png",
-  "Paradox Rift": "https://images.pokemontcg.io/sv4/symbol.png",
-  "Paldean Fates": "https://images.pokemontcg.io/sv4pt5/symbol.png",
-  "Temporal Forces": "https://images.pokemontcg.io/sv5/symbol.png",
-  "Twilight Masquerade": "https://images.pokemontcg.io/sv6/symbol.png",
-  "Shrouded Fable": "https://images.pokemontcg.io/sv6pt5/symbol.png",
-  "Stellar Crown": "https://images.pokemontcg.io/sv7/symbol.png",
-  "Surging Sparks": "https://images.pokemontcg.io/sv8/symbol.png",
-  "Prismatic Evolutions": "https://images.pokemontcg.io/sv8pt5/symbol.png",
-  "Journey Together": "https://images.pokemontcg.io/sv9/symbol.png",
-  "Destined Rivals": "https://images.pokemontcg.io/sv10/symbol.png",
-  "Black Bolt": "https://images.pokemontcg.io/zsv10pt5/symbol.png",
-  "White Flare": "https://images.pokemontcg.io/rsv10pt5/symbol.png",
-  "Mega Evolution": "https://images.pokemontcg.io/me1/symbol.png",
-  "Phantasmal Flames": "https://images.pokemontcg.io/me2/symbol.png",
-  "Ascended Heroes": "https://images.pokemontcg.io/me2pt5/symbol.png"
+// Maps clean expansion names to Scrydex set codes
+const setCodes = {
+  "Base Set": "base1",
+  Jungle: "base2",
+  Fossil: "base3",
+  "Base Set 2": "base4",
+  "Team Rocket": "base5",
+  "Black Star Promo": "basep",
+  "Gym Heroes": "gym1",
+  "Gym Challenge": "gym2",
+  "Neo Genesis": "neo1",
+  "Neo Discovery": "neo2",
+  "Neo Revelation": "neo3",
+  "Neo Destiny": "neo4",
+  "Legendary Collection": "base6",
+  "Expedition Base Set": "ecard1",
+  Aquapolis: "ecard2",
+  Skyridge: "ecard3",
+
+  "Ruby & Sapphire": "ex1",
+  Sandstorm: "ex2",
+  Dragon: "ex3",
+  "Team Magma vs Team Aqua": "ex4",
+  "Hidden Legends": "ex5",
+  "FireRed & LeafGreen": "ex6",
+  "Team Rocket Returns": "ex7",
+  Deoxys: "ex8",
+  Emerald: "ex9",
+  "Unseen Forces": "ex10",
+  "Delta Species": "ex11",
+  "Legend Maker": "ex12",
+  "Holon Phantoms": "ex13",
+  "Crystal Guardians": "ex14",
+  "Dragon Frontiers": "ex15",
+  "Power Keepers": "ex16",
+
+  "POP Series 1": "pop1",
+  "POP Series 2": "pop2",
+  "POP Series 3": "pop3",
+  "POP Series 4": "pop4",
+  "POP Series 5": "pop5",
+  "POP Series 6": "pop6",
+  "POP Series 7": "pop7",
+  "POP Series 8": "pop8",
+  "POP Series 9": "pop9",
+
+  "Diamond & Pearl": "dp1",
+  "Mysterious Treasures": "dp2",
+  "Secret Wonders": "dp3",
+  "Great Encounters": "dp4",
+  "Majestic Dawn": "dp5",
+  "Legends Awakened": "dp6",
+  Stormfront: "dp7",
+
+  Platinum: "pl1",
+  "Rising Rivals": "pl2",
+  "Supreme Victors": "pl3",
+  Arceus: "pl4",
+
+  "HeartGold & SoulSilver": "hgss1",
+  Unleashed: "hgss2",
+  Undaunted: "hgss3",
+  Triumphant: "hgss4",
+  "Call of Legends": "col1",
+
+  "Southern Islands": "si1",
+  Rumble: "ru1",
+
+  "Black & White": "bw1",
+  "Emerging Powers": "bw2",
+  "Noble Victories": "bw3",
+  "Next Destinies": "bw4",
+  "Dark Explorers": "bw5",
+  "Dragons Exalted": "bw6",
+  "Boundaries Crossed": "bw7",
+  "Plasma Storm": "bw8",
+  "Plasma Freeze": "bw9",
+  "Plasma Blast": "bw10",
+  "Legendary Treasures": "bw11",
+
+  "Best of Game": "bp",
+
+  "McDonald's Collection 2011": "mcd11",
+  "McDonald's Collection 2012": "mcd12",
+  "McDonald's Collection 2014": "mcd14",
+  "McDonald's Collection 2015": "mcd15",
+  "McDonald's Collection 2016": "mcd16",
+  "McDonald's Collection 2017": "mcd17",
+  "McDonald's Collection 2018": "mcd18",
+  "McDonald's Collection 2019": "mcd19",
+  "McDonald's Collection 2021": "mcd21",
+  "McDonald's Collection 2022": "mcd22",
+  "McDonald's Collection 2023": "mcd23",
+  "McDonald's Collection 2024": "mcd24",
+
+  "Pokémon Futsal": "fut20",
+
+  "Kalos Starter Set": "xy0",
+  XY: "xy1",
+  Flashfire: "xy2",
+  "Furious Fists": "xy3",
+  "Phantom Forces": "xy4",
+  "Primal Clash": "xy5",
+  "Roaring Skies": "xy6",
+  "Ancient Origins": "xy7",
+  BREAKthrough: "xy8",
+  BREAKpoint: "xy9",
+  "Fates Collide": "xy10",
+  "Steam Siege": "xy11",
+  Evolutions: "xy12",
+
+  "Double Crisis": "dc1",
+  Generations: "g1",
+  "Dragon Vault": "dv1",
+
+  "Sun & Moon": "sm1",
+  "Guardians Rising": "sm2",
+  "Burning Shadows": "sm3",
+  "Crimson Invasion": "sm4",
+  "Ultra Prism": "sm5",
+  "Forbidden Light": "sm6",
+  "Celestial Storm": "sm7",
+  "Lost Thunder": "sm8",
+  "Team Up": "sm9",
+  "Unbroken Bonds": "sm10",
+  "Unified Minds": "sm11",
+  "Cosmic Eclipse": "sm12",
+
+  "Shining Legends": "sm35",
+  "Dragon Majesty": "sm75",
+  "Hidden Fates": "sm115",
+  "Shiny Vault": "sma",
+  "Detective Pikachu": "det1",
+
+  "Sword & Shield": "swsh1",
+  "Rebel Clash": "swsh2",
+  "Darkness Ablaze": "swsh3",
+  "Champion's Path": "swsh35",
+  "Vivid Voltage": "swsh4",
+  "Shining Fates": "swsh45",
+  "Battle Styles": "swsh5",
+  "Chilling Reign": "swsh6",
+  "Evolving Skies": "swsh7",
+  Celebrations: "cel25",
+  "Fusion Strike": "swsh8",
+  "Brilliant Stars": "swsh9",
+  "Astral Radiance": "swsh10",
+  "Lost Origin": "swsh11",
+  "Silver Tempest": "swsh12",
+  "Pokémon GO": "pgo",
+  "Crown Zenith": "swsh12pt5",
+
+  "Scarlet & Violet": "sv1",
+  "Paldea Evolved": "sv2",
+  "Obsidian Flames": "sv3",
+  "151": "sv3pt5",
+  "Paradox Rift": "sv4",
+  "Paldean Fates": "sv4pt5",
+  "Temporal Forces": "sv5",
+  "Twilight Masquerade": "sv6",
+  "Shrouded Fable": "sv6pt5",
+  "Stellar Crown": "sv7",
+  "Surging Sparks": "sv8",
+  "Prismatic Evolutions": "sv8pt5",
+  "Journey Together": "sv9",
+  "Destined Rivals": "sv10",
+  "Black Bolt": "zsv10pt5",
+  "White Flare": "rsv10pt5",
+
+  "Mega Evolution": "me1",
+  "Phantasmal Flames": "me2",
+  "Ascended Heroes": "me2pt5",
+  "Perfect Order": "me3",
+  "Chaos Rising": "me4",
+  "Pitch Black": "me5",
 };
 
-function getPreferredExpansionSymbolSrc(originalUrl) {
-  if (!originalUrl) return { preferred: null, fallback: null };
+const getScrydexSymbolUrl = (code) =>
+  code
+    ? `https://images.scrydex.com/pokemon/${code}-symbol/symbol`
+    : null;
 
-  // Extract code from: https://images.pokemontcg.io/<code>/symbol.png
-  const match = originalUrl.match(/\/([a-z0-9]+)\/symbol\.png/i);
-  const code = match ? match[1].toLowerCase() : null;
+const getScrydexLogoUrl = (code) =>
+  code
+    ? `https://images.scrydex.com/pokemon/${code}-logo/logo`
+    : null;
 
-  if (!code) return { preferred: null, fallback: originalUrl };
-
-  // Only try trimmed for modern rectangle-style codes.
-  // sv...  (SV era), me... (Mega Evolution era), mcd... (McDonald's)
-  const isRectangleStyle =
-  /^([a-z]?sv)/.test(code) || code.startsWith("me") || code.startsWith("mcd");
-
-  if (!isRectangleStyle) return { preferred: null, fallback: originalUrl };
-
-  return {
-    preferred: `/set-symbols/trimmed/${code}.png`,
-    fallback: originalUrl,
-  };
-}
+const setSymbols = Object.fromEntries(
+  Object.entries(setCodes).map(([name, code]) => [
+    name,
+    getScrydexSymbolUrl(code),
+  ])
+);
 
 const setLogos = Object.fromEntries(
-  Object.entries(setSymbols).map(([name, symbolUrl]) => {
-    const logoUrl = symbolUrl.replace("/symbol.png", "/logo.png");
-    return [name, logoUrl];
-  })
+  Object.entries(setCodes).map(([name, code]) => [
+    name,
+    getScrydexLogoUrl(code),
+  ])
 );
 
 const EXPANSION_VARIANT_ICONS = {
@@ -451,9 +465,6 @@ const WOTC_SETS = new Set([
   "Skyridge"
 ]);
 
-const RECT_SYMBOL_HEIGHT_PX = 14;  // visual height of rectangle-style symbols
-const RECT_SYMBOL_WIDTH_PX = 24;   // visual width of rectangle-style symbols
-
 function parseExpansionName(expansionName = "") {
   const raw = (expansionName || "").trim();
 
@@ -476,11 +487,11 @@ function getSymbolsForExpansion(expansionName) {
 
   // New-style rectangle promos (S&V + ME) – allow suffix variants like "(PP)"
   if (baseName === "SV Black Star Promo") {
-    return ["/set-symbols/trimmed/svp.png"];
+    return ["/set-symbols/svp.png"];
   }
 
   if (baseName === "ME Black Star Promo") {
-    return ["/set-symbols/trimmed/mep.png"];
+    return ["/set-symbols/mep.png"];
   }
 
   // Older Black Star Promos – use the classic universal star symbol
@@ -501,7 +512,7 @@ function getSymbolsForExpansion(expansionName) {
     };
 
     const code = classicMap[name];
-    if (code) return [`/set-symbols/trimmed/${code}.png`];
+  if (code) return [getScrydexSymbolUrl(code)];
   }
 
   // Special case: show both Hidden Fates and Shiny Vault symbols
@@ -640,15 +651,44 @@ function renderCardNameWithSymbols(cardName, row = {}, overrideSymbolFlags = {})
     "unit energy grw": { base: "Unit Energy", types: ["Grass", "Fire", "Water"] },
     "unit energy lpm": { base: "Unit Energy", types: ["Lightning", "Psychic", "Metal"] },
     "unit energy fdy": { base: "Unit Energy", types: ["Fighting", "Darkness", "Fairy"] },
+
+    // Single-type Energy cards
+    "bubbly (water) energy": {
+      base: "Bubbly",
+      types: ["Water"],
+      suffix: "Energy"
+    },
+    "magnetic (metal) energy": {
+      base: "Magnetic",
+      types: ["Metal"],
+      suffix: "Energy"
+    },
+    "nitro (fire) energy": {
+      base: "Nitro",
+      types: ["Fire"],
+      suffix: "Energy"
+    },
+    "voltaic (lightning) energy": {
+      base: "Voltaic",
+      types: ["Lightning"],
+      suffix: "Energy"
+    },
+    "shadowy (darkness) energy": {
+      base: "Shadowy",
+      types: ["Darkness"],
+      suffix: "Energy",
+    },
   };
 
   const energyConfig = energyCardMap[lower];
 
   if (energyConfig) {
-    // Return *only* the hardcoded energy rendering for these cards
-    // This avoids triggering GL / G / C / V Pokémon badge logic
-    return `${energyConfig.base} ${energy(energyConfig.types)}`;
-  }
+  const icons = energy(energyConfig.types);
+
+  return energyConfig.suffix
+    ? `${energyConfig.base} ${icons}${energyConfig.suffix}`
+    : `${energyConfig.base} ${icons}`;
+}
 
     const symbolMap = {
     "GoldStar": "/icons/GoldStar.png",
@@ -777,6 +817,44 @@ function getExpansionSymbolHeight(expansionName) {
   return isWotc ? "14px" : "18px";
 }
 
+function isModernRectangleSymbol(expansionName = "") {
+  const { raw, base } = parseExpansionName(expansionName);
+
+  return (
+    base === "SV Black Star Promo" ||
+    base === "ME Black Star Promo" ||
+    /^Pokémon TCG Classic/i.test(raw) ||
+    [
+      "McDonald's Collection 2023",
+      "McDonald's Collection 2024",
+
+      "Scarlet & Violet",
+      "Paldea Evolved",
+      "Obsidian Flames",
+      "151",
+      "Paradox Rift",
+      "Paldean Fates",
+      "Temporal Forces",
+      "Twilight Masquerade",
+      "Shrouded Fable",
+      "Stellar Crown",
+      "Surging Sparks",
+      "Prismatic Evolutions",
+      "Journey Together",
+      "Destined Rivals",
+      "Black Bolt",
+      "White Flare",
+
+      "Mega Evolution",
+      "Phantasmal Flames",
+      "Ascended Heroes",
+      "Perfect Order",
+      "Chaos Rising",
+      "Pitch Black",
+    ].includes(base)
+  );
+}
+
 const CardTable = React.memo(function CardTable({
   displayedData,
   tableRef,
@@ -839,53 +917,27 @@ const CardTable = React.memo(function CardTable({
             {renderCell(row["Series"], "series")}
             <td className="expansion">
               {getSymbolsForExpansion(rawExpansion).map((url, j) => {
-        const { preferred, fallback } = getPreferredExpansionSymbolSrc(url);
-        const initialSrc = preferred || fallback || url;
+        const isRectangle = isModernRectangleSymbol(rawExpansion);
 
-        // Treat anything coming from /set-symbols/trimmed/ as a rectangle too
-        // (this catches SVP/MEP and your Classic/McD/ME trimmed icons).
-        const isRect =
-          !!preferred ||
-          (typeof initialSrc === "string" &&
-            initialSrc.startsWith("/set-symbols/trimmed/"));
-
-        const handleError = (e) => {
-          // Only attempt fallback if we started with a preferred trimmed path
-          if (
-            preferred &&
-            fallback &&
-            e.currentTarget.getAttribute("src") === preferred
-          ) {
-            e.currentTarget.setAttribute("src", fallback);
-          }
-        };
-
-        if (isRect) {
-          return (
-            <span
-              key={j}
-              className="rect-symbol-box"
-              style={{
-                height: `${RECT_SYMBOL_HEIGHT_PX}px`,
-                width: `${RECT_SYMBOL_WIDTH_PX}px`,
-              }}
-            >
+        if (isRectangle) {
+        return (
+          <span key={j} className="modern-symbol-slot">
+            <span className="modern-symbol-crop">
               <img
-                src={initialSrc}
+                src={url}
                 alt={`${rawExpansion} symbol`}
-                onError={handleError}
               />
             </span>
-          );
-        }
+          </span>
+        );
+      }
 
         return (
           <img
             key={j}
-            src={initialSrc}
+            src={url}
             alt={`${rawExpansion} symbol`}
             className="set-symbol"
-            onError={handleError}
             style={{
               height: getExpansionSymbolHeight(rawExpansion),
               width: "auto",
@@ -1321,29 +1373,61 @@ if (colIndex === 1) {
   tds.forEach((cell, rowIndex) => {
     const expansion = displayedData[rowIndex]?.["Expansion"] || "";
     const symbols = getSymbolsForExpansion(expansion);
+    const isRectangle = isModernRectangleSymbol(expansion);
+
     const baseSymbolsHTML = symbols
-  .map((url) => {
-    const h = getExpansionSymbolHeight(expansion);
-    const { preferred, fallback } = getPreferredExpansionSymbolSrc(url);
-    const src = preferred || fallback || url;
+      .map((url) => {
+        if (isRectangle) {
+          return `
+            <span
+              style="
+                display:inline-flex;
+                align-items:center;
+                justify-content:center;
+                width:21px;
+                height:12.6px;
+                margin-right:0.375em;
+                vertical-align:middle;
+              "
+            >
+              <span
+                style="
+                  display:inline-flex;
+                  align-items:center;
+                  justify-content:center;
+                  width:30px;
+                  height:18px;
+                  overflow:hidden;
+                  transform:scale(0.7);
+                  transform-origin:center;
+                  flex-shrink:0;
+                "
+              >
+                <img
+                  src="${url}"
+                  style="
+                    display:block;
+                    width:30px;
+                    height:auto;
+                    max-width:none;
+                  "
+                />
+              </span>
+            </span>
+          `;
+        }
 
-    const isRect =
-      !!preferred ||
-      (typeof src === "string" && src.startsWith("/set-symbols/trimmed/"));
+        const h = getExpansionSymbolHeight(expansion);
 
-    if (isRect) {
-      // Match the fixed rectangle box used in the real table
-      return `<span class="rect-symbol-box" style="height:${h};width:34px;margin-right:0.375em;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;">
-                <img src="${src}" style="height:100%;width:100%;object-fit:contain;display:block;"
-                     onerror="if('${fallback}' && this.src!=='${fallback}') this.src='${fallback}';" />
-              </span>`;
-    }
-
-    // Non-rectangle symbols: measure as normal img with height rule
-    return `<img src="${src}" class="set-symbol" style="height:${h};width:auto;"
-                 onerror="if('${fallback}' && this.src!=='${fallback}') this.src='${fallback}';" />`;
-  })
-  .join("");
+        return `
+          <img
+            src="${url}"
+            class="set-symbol"
+            style="height:${h};width:auto;"
+          />
+        `;
+      })
+      .join("");
 
         // 🔹 Half Deck icon (depends on Expansion + Series)
         const series = displayedData[rowIndex]?.["Series"] || "";
@@ -2010,24 +2094,39 @@ html, body {
         margin-right: 0.375em;
       }
 
-      .rect-symbol-box {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        height: 18px;      /* the uniform rectangle height */
-        width: 34px;       /* the uniform rectangle width (tweak later if you want) */
-        margin-right: 0.375em;
-        vertical-align: middle;
-      }
+        .modern-symbol-slot {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 21px;
+          height: 12.6px;
+          margin-right: 0.375em;
+          vertical-align: middle;
+          flex-shrink: 0;
+        }
 
-      .rect-symbol-box img {
-        height: 100%;
-        width: 100%;
-        object-fit: contain;
-        display: block;
-        image-rendering: -webkit-optimize-contrast;
-        transform: translateZ(0);
-      }
+        .modern-symbol-crop {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+
+          /* Preserve the working crop */
+          width: 30px;
+          height: 18px;
+          overflow: hidden;
+
+          /* Scale the completed crop into the smaller slot */
+          transform: scale(0.7);
+          transform-origin: center;
+          flex-shrink: 0;
+        }
+
+        .modern-symbol-crop img {
+          display: block;
+          width: 30px;
+          height: auto;
+          max-width: none;
+        }
 
       .inline-symbol {
         height: 1em;        /* KEEP: card-name icons still scale with text */
