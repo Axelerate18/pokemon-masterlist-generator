@@ -18,6 +18,9 @@ import {
   HALF_DECK_ICONS_BY_SERIES,
 } from "../types/half_deck_icons";
 import { EXPANSION_VARIANT_ICONS } from "../types/expansion_variant_icons";
+import SearchFieldDropdown from "../components/SearchFieldDropdown";
+import SearchField from "@/src/components/SearchField";
+import { Lexend_Tera } from "next/font/google";
 
 function waitForAllImagesToLoad(images) {
   return Promise.all(
@@ -51,6 +54,26 @@ function normalizePokemonName(value) {
     .replace(/\btex\b/g, "ex")
     .trim();
 }
+
+// Map of species -> canonical default form slug used by external APIs
+const DEFAULT_SPECIES_FORMS = {
+  meowstic: "meowstic-male",
+  indeedee: "indeedee-male",
+  oinkologne: "oinkologne-male",
+  oricorio: "oricorio-baile",
+  toxtricity: "toxtricity-amped",
+  shellos: "shellos-west",
+  gastrodon: "gastrodon-west",
+  minior: "minior-red-meteor",
+  wormadam: "wormadam-plant",
+  basculin: "basculin-red-striped",
+  darmanitan: "darmanitan-standard",
+  meloetta: "meloetta-aria",
+  aegislash: "aegislash-shield",
+  shaymin: "shaymin-land",
+  wishiwashi: "wishiwashi-solo",
+  lycanroc: "lycanroc-midday",
+};
 
 function getPreferredExpansionSymbolSrc(originalUrl) {
   if (!originalUrl) return { preferred: null, fallback: null };
@@ -722,23 +745,12 @@ const SuggestionList = React.memo(function SuggestionList({
 export default function Page() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [confirmedSearchInput, setConfirmedSearchInput] = useState("");
-  const [confirmedSearchField, setConfirmedSearchField] = useState("");
   const [pokemonId, setPokemonId] = useState(null);
   const [suggestionPos, setSuggestionPos] = useState({
     top: 0,
     left: 0,
     width: 0,
   });
-  const [showFieldDropdown, setShowFieldDropdown] = useState(false);
-  const dropdownToggleRef = useRef(null);
-  const fieldMenuRef = useRef(null);
-  const [fieldDropdownPos, setFieldDropdownPos] = useState({
-    top: 0,
-    left: 0,
-    width: 140,
-  });
-
   const containerRef = useRef(null);
   const tableRef = useRef(null);
   const generateButtonRef = useRef(null);
@@ -748,18 +760,17 @@ export default function Page() {
 
   const BASE_FONT_SIZE = 14;
   const fontSize = BASE_FONT_SIZE;
-  const [searchField, setSearchField] = useState("Card Name");
-  const [searchInput, setSearchInput] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
   const [searchPerformed, setSearchPerformed] = useState(false);
-  const [expansionSuggestions, setExpansionSuggestions] = useState([]);
-  const [pokemonNameSuggestions] = useState(POKEMON_SPECIES);
   const [filteredData, setFilteredData] = useState([]);
   const [suggestions, setSuggestions] = useState({
     list: [],
     visible: false,
   });
   const [highlightIndex, setHighlightIndex] = useState(-1);
+
+  const [dropdownSelection, setDropdownSelection] = useState("Card Name");
+  const [searchInput, setSearchInput] = useState("");
 
   useEffect(() => {
     const updateSuggestionPos = () => {
@@ -784,16 +795,6 @@ export default function Page() {
       window.removeEventListener("resize", updateSuggestionPos);
     };
   }, [suggestions.visible]);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownToggleRef.current?.contains(event.target)) return; // clicked the trigger
-      if (fieldMenuRef.current?.contains(event.target)) return; // clicked inside menu
-      setShowFieldDropdown(false);
-    };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -837,54 +838,40 @@ export default function Page() {
   }, []);
 
   useEffect(() => {
-    if (confirmedSearchField !== "Card Name" || !confirmedSearchInput) {
+    // Only run when the user is searching by Card Name and there is input
+    if (dropdownSelection !== "Card Name" || !searchInput) {
+      setSearchInput("");
       setPokemonId(null);
       return;
     }
 
-    const slug = speciesToSlug(confirmedSearchInput);
+    const slug = speciesToSlug(searchInput);
+    if (!slug) {
+      setPokemonId(null);
+      return;
+    }
 
-    // Official default forms used by PokéAPI / Bulbapedia / Serebii / Showdown
-    const defaultForms = {
-      meowstic: "meowstic-male",
-      indeedee: "indeedee-male",
-      oinkologne: "oinkologne-male",
-      oricorio: "oricorio-baile",
-      toxtricity: "toxtricity-amped",
-      shellos: "shellos-west",
-      gastrodon: "gastrodon-west",
-      minior: "minior-red-meteor",
-      wormadam: "wormadam-plant",
-      basculin: "basculin-red-striped",
-      darmanitan: "darmanitan-standard",
-      meloetta: "meloetta-aria",
-      aegislash: "aegislash-shield",
-      shaymin: "shaymin-land",
-      wishiwashi: "wishiwashi-solo",
-      lycanroc: "lycanroc-midday",
-    };
+    const controller = new AbortController();
 
     async function fetchSprite() {
-      const candidates = [];
-
-      // Always try the literal species slug first
-      candidates.push(slug);
-
-      // Then try the “canonical default form” if one exists
-      if (defaultForms[slug]) {
-        candidates.push(defaultForms[slug]);
-      }
+      const candidates = [slug];
+      const fallback = DEFAULT_SPECIES_FORMS[slug];
+      if (fallback && fallback !== slug) candidates.push(fallback);
 
       for (const s of candidates) {
         try {
-          const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${s}`);
+          const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${s}`, {
+            signal: controller.signal,
+          });
           if (!res.ok) continue;
 
           const json = await res.json();
           setPokemonId(json.id);
+
           return;
-        } catch (e) {
-          // try next
+        } catch (err) {
+          if (err.name === "AbortError") return; // cancelled
+          // otherwise try the next candidate
         }
       }
 
@@ -892,7 +879,9 @@ export default function Page() {
     }
 
     fetchSprite();
-  }, [confirmedSearchField, confirmedSearchInput]);
+
+    return () => controller.abort();
+  }, [searchInput, dropdownSelection]);
 
   useEffect(() => {
     setHighlightIndex(-1);
@@ -903,7 +892,7 @@ export default function Page() {
       // Highlight all text
       inputRef.current.select();
     }
-  }, [searchField]);
+  }, [dropdownSelection]);
 
   // Resize handler to adjust font size based on widest content in each column
 
@@ -1174,8 +1163,7 @@ export default function Page() {
           `${width}px`,
         );
       });
-
-      console.log("Measured widths:", maxColWidths);
+      // console.log("Measured widths:", maxColWidths);
     };
 
     requestAnimationFrame(() => {
@@ -1205,27 +1193,26 @@ export default function Page() {
 
   const handleSearch = () => {
     // 1) Work with a local snapshot of what the user typed (avoids async setState timing)
-    const committed = searchInput.trim();
-    const trimmedInput =
-      searchField === "Card Name"
+    let committed = searchInput.trim();
+    let trimmedInput =
+      dropdownSelection === "Card Name"
         ? normalizePokemonName(committed)
         : committed.toLowerCase();
+
     if (!trimmedInput) {
       setFilteredData([]);
-      setConfirmedSearchInput("");
-      setConfirmedSearchField(searchField);
       setActiveSearch(""); // committed term for UI
       setSearchPerformed(true); // still mark as performed to clear previous results
       return;
     }
 
     let filtered = data.filter((row) => {
-      const fieldValue =
-        searchField === "Card Name"
-          ? normalizePokemonName(row[searchField] || "")
-          : (row[searchField] || "").toLowerCase().trim();
+      let fieldValue =
+        dropdownSelection === "Card Name"
+          ? normalizePokemonName(row[dropdownSelection] || "")
+          : (row[dropdownSelection] || "").toLowerCase().trim();
 
-      if (searchField === "Card Name") {
+      if (dropdownSelection === "Card Name") {
         if (trimmedInput === "porygon" && fieldValue.includes("porygon-z")) {
           return false;
         }
@@ -1249,7 +1236,7 @@ export default function Page() {
         );
       }
 
-      if (searchField === "Expansion") {
+      if (dropdownSelection === "Expansion") {
         if (trimmedInput === "expedition base set") {
           return fieldValue === trimmedInput;
         }
@@ -1263,101 +1250,90 @@ export default function Page() {
           return fieldValue.toLowerCase().startsWith("my first battle");
         }
 
-        const baseFieldValue =
-          parseExpansionName(fieldValue).base.toLowerCase();
-        const baseInput = parseExpansionName(committed).base.toLowerCase();
-        return baseFieldValue === baseInput;
+        return (
+          parseExpansionName(fieldValue).base.toLowerCase() ===
+          parseExpansionName(committed).base.toLowerCase()
+        );
       }
 
       // Default fallback
       return fieldValue === trimmedInput;
     });
 
-    if (searchField === "Expansion") {
-      const normalizedInput = trimmedInput;
-      const skipSortExpansions = ["celebrations"];
-      const shouldSkipSort = skipSortExpansions.some((name) =>
+    if (dropdownSelection === "Expansion") {
+      let normalizedInput = trimmedInput;
+      let skipSortExpansions = ["celebrations"];
+      let shouldSkipSort = skipSortExpansions.some((name) =>
         normalizedInput.startsWith(name),
       );
 
       if (!shouldSkipSort) {
         filtered = filtered.map((item, index) => ({ ...item, __index: index }));
 
+        const parseSetNumber = (raw) => {
+          const s = (raw || "").trim();
+          const rangeMatch = s.match(/^([A-Z]+)?(\d+)-(\d+)$/i);
+          if (rangeMatch) {
+            return {
+              kind: "range",
+              prefix: (rangeMatch[1] || "").toUpperCase(),
+              start: parseInt(rangeMatch[2], 10),
+              end: parseInt(rangeMatch[3], 10),
+              raw: s,
+            };
+          }
+
+          const singleMatch = s.match(/^([A-Z]+)?(\d{1,4})$/i);
+          if (singleMatch) {
+            return {
+              kind: "single",
+              prefix: (singleMatch[1] || "").toUpperCase(),
+              num: parseInt(singleMatch[2], 10),
+              raw: s,
+            };
+          }
+
+          return { kind: "other", raw: s };
+        };
+
+        const cmpPrefix = (a, b) =>
+          a.localeCompare(b, undefined, { sensitivity: "base" });
+
         filtered.sort((a, b) => {
-          const aRaw = a["Set number"] || "";
-          const bRaw = b["Set number"] || "";
+          const A = parseSetNumber(a["Set number"] || "");
+          const B = parseSetNumber(b["Set number"] || "");
 
-          const rangeRegex = /^([A-Z]+)?(\d+)-(\d+)$/i;
-          const singleRegex = /^([A-Z]+)?(\d{1,4})$/i;
-
-          const aRange = aRaw.match(rangeRegex);
-          const bRange = bRaw.match(rangeRegex);
-          const aSingle = aRaw.match(singleRegex);
-          const bSingle = bRaw.match(singleRegex);
-
-          // Range vs. Single
-          if (aRange && bSingle) {
-            const aPrefix = aRange[1] || "";
-            const aEnd = parseInt(aRange[3], 10);
-            const bPrefix = bSingle[1] || "";
-            const bNum = parseInt(bSingle[2], 10);
-
-            const prefixCompare = aPrefix
-              .toUpperCase()
-              .localeCompare(bPrefix.toUpperCase());
-            if (prefixCompare !== 0) return prefixCompare;
-
-            return aEnd - bNum + 1; // place range after single
+          // range vs single
+          if (A.kind === "range" && B.kind === "single") {
+            const p = cmpPrefix(A.prefix, B.prefix);
+            if (p !== 0) return p;
+            return A.end - B.num + 1; // keep original behavior
           }
 
-          if (aSingle && bRange) {
-            const aPrefix = aSingle[1] || "";
-            const aNum = parseInt(aSingle[2], 10);
-            const bPrefix = bRange[1] || "";
-            const bEnd = parseInt(bRange[3], 10);
-
-            const prefixCompare = aPrefix
-              .toUpperCase()
-              .localeCompare(bPrefix.toUpperCase());
-            if (prefixCompare !== 0) return prefixCompare;
-
-            return aNum - bEnd - 1; // place range after single
+          if (A.kind === "single" && B.kind === "range") {
+            const p = cmpPrefix(A.prefix, B.prefix);
+            if (p !== 0) return p;
+            return A.num - B.end - 1;
           }
 
-          // Both ranges
-          if (aRange && bRange) {
-            const aPrefix = aRange[1] || "";
-            const aStart = parseInt(aRange[2], 10);
-            const bPrefix = bRange[1] || "";
-            const bStart = parseInt(bRange[2], 10);
-
-            const prefixCompare = aPrefix
-              .toUpperCase()
-              .localeCompare(bPrefix.toUpperCase());
-            if (prefixCompare !== 0) return prefixCompare;
-
-            return aStart - bStart;
+          // both ranges
+          if (A.kind === "range" && B.kind === "range") {
+            const p = cmpPrefix(A.prefix, B.prefix);
+            if (p !== 0) return p;
+            return A.start - B.start;
           }
 
-          // Both singles
-          if (aSingle && bSingle) {
-            const aPrefix = aSingle[1] || "";
-            const aNum = parseInt(aSingle[2], 10);
-            const bPrefix = bSingle[1] || "";
-            const bNum = parseInt(bSingle[2], 10);
-
-            const prefixCompare = aPrefix
-              .toUpperCase()
-              .localeCompare(bPrefix.toUpperCase());
-            if (prefixCompare !== 0) return prefixCompare;
-
-            return aNum - bNum;
+          // both singles
+          if (A.kind === "single" && B.kind === "single") {
+            const p = cmpPrefix(A.prefix, B.prefix);
+            if (p !== 0) return p;
+            return A.num - B.num;
           }
 
-          // Fallback
-          return aRaw.localeCompare(bRaw, undefined, { numeric: true });
-
-          // NOTE: you had a stray "return a.__index - b.__index;" below here — keep it removed
+          // fallback: numeric-aware locale compare of raw strings
+          return (A.raw || "").localeCompare(B.raw || "", undefined, {
+            numeric: true,
+          });
         });
 
         filtered = filtered.map(({ __index, ...rest }) => rest);
@@ -1367,8 +1343,6 @@ export default function Page() {
     // 3) Commit everything atomically: data first → then “performed” flag → and UI labels
     setFilteredData(filtered); // must be BEFORE setSearchPerformed(true)
     setActiveSearch(committed); // keep a committed term for measuring/UI
-    setConfirmedSearchInput(committed); // for visible labels / CSV filename
-    setConfirmedSearchField(searchField);
     setSearchPerformed(true); // triggers measuring effect AFTER table renders
   };
 
@@ -1393,7 +1367,7 @@ export default function Page() {
     }));
 
     // 🧼 Safe filename from search input
-    const raw = confirmedSearchInput || "pokemon";
+    const raw = searchInput || "pokemon";
     const searchTerm = raw
       .trim()
       .toLowerCase()
@@ -1802,382 +1776,191 @@ html, body {
 
       <div className="table-container" ref={containerRef}>
         <div className="sticky-top-container">
-          <div className="search-bar-wrapper">
-            <label htmlFor="field-select" style={{ marginRight: "8px" }}>
-              Create for:
-            </label>
+          {/* <div className="search-bar-wrapper"> */}
+          <label htmlFor="field-select" style={{ marginRight: "8px" }}>
+            Create for:
+          </label>
+          <SearchFieldDropdown
+            value={dropdownSelection}
+            onChange={(newValue) => setDropdownSelection(newValue)}
+            options={["Card Name", "Expansion"]}
+          />
+          <SearchField
+            id="search-field"
+            value={searchInput}
+            onChange={setSearchInput}
+            dataset={dropdownSelection}
+            placeholder={`Enter Exact ${dropdownSelection}`}
+          />
+          {/* </div> */}
 
-            <div
-              ref={dropdownToggleRef}
-              style={{
-                position: "relative", // ✅ anchors the absolutely positioned dropdown
-                userSelect: "none",
-                display: "inline-block", // ✅ ensures dropdown width aligns with trigger
-              }}
-            >
-              <div
-                onClick={() => {
-                  const rect =
-                    dropdownToggleRef.current?.getBoundingClientRect();
-                  if (rect) {
-                    setFieldDropdownPos({
-                      top: rect.bottom + window.scrollY + 2,
-                      left: rect.left + window.scrollX,
-                      width: rect.width,
-                    });
-                  }
-                  setShowFieldDropdown((prev) => !prev);
-                }}
-                style={{
-                  padding: "8px 12px",
-                  fontSize: "14px",
-                  lineHeight: 1.5,
-                  height: "32px",
-                  width: "110px",
-                  border: "1px solid #ccc",
-                  borderRadius: "4px",
-                  backgroundColor: "white",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {searchField}
-                <span style={{ marginLeft: "6px", fontSize: "10px" }}>▼</span>
-              </div>
+          <button ref={generateButtonRef} onClick={handleSearch}>
+            Generate
+          </button>
 
-              {showFieldDropdown &&
-                ReactDOM.createPortal(
-                  <div
-                    ref={fieldMenuRef}
-                    style={{
-                      position: "absolute",
-                      top: fieldDropdownPos.top,
-                      left: fieldDropdownPos.left,
-                      zIndex: 99999,
-                      border: "1px solid #ccc",
-                      borderRadius: "4px",
-                      marginTop: 0,
-                      backgroundColor: "white",
-                      boxShadow: "0 4px 8px rgba(0,0,0,0.08)",
-                      width: fieldDropdownPos.width,
-                      boxSizing: "border-box",
-                    }}
-                  >
-                    {["Card Name", "Expansion"].map((field, i, arr) => (
-                      <div
-                        key={field}
-                        onClick={() => {
-                          setSearchField(field);
-                          setShowFieldDropdown(false);
-                        }}
-                        style={{
-                          padding: "8px 12px",
-                          fontSize: "14px",
-                          cursor: "pointer",
-                          borderBottom:
-                            i !== arr.length - 1 ? "1px solid #eee" : "none",
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                        }}
-                      >
-                        {field}
-                      </div>
-                    ))}
-                  </div>,
-                  document.getElementById("floating-suggestions-root"),
-                )}
-            </div>
+          {searchPerformed &&
+            (() => {
+              const isHalfDeck =
+                dropdownSelection === "Expansion" &&
+                searchInput.endsWith("Half Deck");
 
-            {/* 🧠 Wrap just input and dropdown in their own positioning block */}
-            <div style={{ position: "relative", display: "inline-block" }}>
-              <input
-                ref={inputRef}
-                type="text"
-                value={searchInput}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setSearchInput(value);
-
-                  clearTimeout(debounceRef.current);
-
-                  // If not enough characters, hide suggestions (for both modes)
-                  if (value.length < 2) {
-                    debounceRef.current = setTimeout(() => {
-                      setSuggestions({ list: [], visible: false });
-                    }, 150);
-                    return;
-                  }
-
-                  // 🔹 Expansion suggestions (unchanged)
-                  if (searchField === "Expansion") {
-                    debounceRef.current = setTimeout(() => {
-                      const lower = value.toLowerCase();
-                      const matches = expansionSuggestions.filter((exp) =>
-                        exp.toLowerCase().includes(lower),
-                      );
-
-                      setSuggestions({ list: matches, visible: true });
-                      setHighlightIndex(matches.length > 0 ? 0 : -1);
-                    }, 150);
-                    return;
-                  }
-
-                  // 🔹 Card Name suggestions — from static species list
-                  if (searchField === "Card Name") {
-                    debounceRef.current = setTimeout(() => {
-                      const lower = value.toLowerCase();
-
-                      const matches = pokemonNameSuggestions.filter((name) =>
-                        name.toLowerCase().includes(lower),
-                      );
-
-                      setSuggestions({ list: matches, visible: true });
-                      setHighlightIndex(matches.length > 0 ? 0 : -1);
-                    }, 150);
-                    return;
-                  }
-
-                  // Any other field → no suggestions
-                  setSuggestions({ list: [], visible: false });
-                }}
-                onKeyDown={(e) => {
-                  if (!suggestions.visible || suggestions.list.length === 0) {
-                    if (e.key === "Enter") {
-                      handleSearch();
-
-                      // NEW: trigger the visual button press
-                      if (generateButtonRef.current) {
-                        generateButtonRef.current.classList.add("pressed");
-                        setTimeout(() => {
-                          generateButtonRef.current.classList.remove("pressed");
-                        }, 150); // matches the click highlight duration
-                      }
-                    }
-                    return;
-                  }
-
-                  if (e.key === "ArrowDown") {
-                    e.preventDefault();
-                    setHighlightIndex((prev) =>
-                      prev + 1 < suggestions.list.length ? prev + 1 : 0,
-                    );
-                  }
-
-                  if (e.key === "ArrowUp") {
-                    e.preventDefault();
-                    setHighlightIndex((prev) =>
-                      prev - 1 >= 0 ? prev - 1 : suggestions.list.length - 1,
-                    );
-                  }
-
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    // Select highlighted suggestion
-                    const selected = suggestions.list[highlightIndex];
-                    if (selected) {
-                      handleSelectSuggestion(selected);
-                      setSuggestions({ list: [], visible: false });
-                    }
-                  }
-                }}
-                placeholder={`Enter exact ${searchField}`}
-                style={{
-                  marginRight: "12px",
-                  padding: "8px 12px",
-                  height: "32px",
-                }}
-                onBlur={() =>
-                  setTimeout(
-                    () => setSuggestions({ list: [], visible: false }),
-                    100,
-                  )
-                }
-              />
-
-              <SuggestionList
-                visible={suggestions.visible}
-                list={suggestions.list}
-                position={suggestionPos}
-                onSelect={handleSelectSuggestion}
-                highlightIndex={highlightIndex}
-              />
-            </div>
-
-            <button ref={generateButtonRef} onClick={handleSearch}>
-              Generate
-            </button>
-
-            {searchPerformed &&
-              (() => {
-                const isHalfDeck =
-                  confirmedSearchField === "Expansion" &&
-                  confirmedSearchInput.endsWith("Half Deck");
-
-                return (
-                  <div
-                    style={{
-                      height: "64px",
-                      marginLeft: "12px",
-                      display: "flex",
-                      alignItems: "center",
-                    }}
-                  >
-                    {/* Expansion logo — skipped for Half Decks */}
-                    {confirmedSearchField === "Expansion" &&
-                      confirmedSearchInput &&
-                      !isHalfDeck && (
-                        <img
-                          src={getLogoForExpansion(confirmedSearchInput)}
-                          alt={`${confirmedSearchInput} logo`}
-                          style={{
-                            height: "100%",
-                            maxWidth: "200px",
-                            objectFit: "contain",
-                          }}
-                        />
-                      )}
-
-                    {/* Pokémon sprite fallback logic */}
-                    {confirmedSearchField === "Card Name" && pokemonId && (
+              return (
+                <div
+                  style={{
+                    height: "64px",
+                    marginLeft: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  {/* Expansion logo — skipped for Half Decks */}
+                  {dropdownSelection === "Expansion" &&
+                    searchInput &&
+                    !isHalfDeck && (
                       <img
-                        src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonId}.png`}
-                        alt={confirmedSearchInput}
+                        src={getLogoForExpansion(searchInput)}
+                        alt={`${searchInput} logo`}
                         style={{
                           height: "100%",
+                          maxWidth: "200px",
                           objectFit: "contain",
-                        }}
-                        onError={(e) => {
-                          e.target.style.display = "none";
                         }}
                       />
                     )}
-                  </div>
-                );
-              })()}
+
+                  {/* Pokémon sprite fallback logic */}
+                  {dropdownSelection === "Card Name" && pokemonId && (
+                    <img
+                      src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonId}.png`}
+                      alt={searchInput}
+                      style={{
+                        height: "100%",
+                        objectFit: "contain",
+                      }}
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                      }}
+                    />
+                  )}
+                </div>
+              );
+            })()}
+
+          <span
+            style={{
+              marginLeft: "12px",
+              fontWeight: 500,
+              color: "#555",
+              padding: "4px 8px",
+              borderRadius: "4px",
+              backgroundColor: "#f1f1f1",
+            }}
+          >
+            {searchPerformed
+              ? displayedData.length === 0
+                ? "No results"
+                : `${displayedData.length} card${displayedData.length !== 1 ? "s" : ""}`
+              : ""}
+          </span>
+
+          <button
+            onClick={handleDownloadCSV}
+            title="Save as .csv"
+            style={{ marginLeft: "12px" }}
+          >
+            Export
+          </button>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              marginLeft: "auto",
+              gap: "12px",
+              flexWrap: "wrap",
+            }}
+          >
+            {latestReleaseDate && (
+              <div
+                style={{
+                  padding: "4px 8px",
+                  backgroundColor: "#eafbe7", // ✅ soft green background
+                  border: "1px solid #b6deb3", // ✅ soft green border
+                  borderRadius: "12px",
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  color: "#2e5e2a", // ✅ darker green text
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Up to date: {latestReleaseDate}
+              </div>
+            )}
 
             <span
               style={{
-                marginLeft: "12px",
-                fontWeight: 500,
+                fontSize: "13px",
                 color: "#555",
-                padding: "4px 8px",
-                borderRadius: "4px",
-                backgroundColor: "#f1f1f1",
+                fontStyle: "italic",
+                whiteSpace: "nowrap",
               }}
             >
-              {searchPerformed
-                ? displayedData.length === 0
-                  ? "No results"
-                  : `${displayedData.length} card${displayedData.length !== 1 ? "s" : ""}`
-                : ""}
+              Missing cards, wrong data, bugs, or feature discussion →
             </span>
 
-            <button
-              onClick={handleDownloadCSV}
-              title="Save as .csv"
-              style={{ marginLeft: "12px" }}
-            >
-              Export
-            </button>
-
-            <div
+            <a
+              href={DISCORD_INVITE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "flex-end",
-                marginLeft: "auto",
-                gap: "12px",
-                flexWrap: "wrap",
+                display: "inline-block",
+                backgroundColor: "#5865F2",
+                color: "#fff",
+                border: "1px solid #4c59d4",
+                fontWeight: "bold",
+                textDecoration: "none",
+                padding: "8px 12px",
+                borderRadius: "6px",
+                whiteSpace: "nowrap",
+                transition: "transform 0.1s ease, box-shadow 0.1s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-1px)";
+                e.currentTarget.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "none";
               }}
             >
-              {latestReleaseDate && (
-                <div
-                  style={{
-                    padding: "4px 8px",
-                    backgroundColor: "#eafbe7", // ✅ soft green background
-                    border: "1px solid #b6deb3", // ✅ soft green border
-                    borderRadius: "12px",
-                    fontSize: "13px",
-                    fontWeight: 500,
-                    color: "#2e5e2a", // ✅ darker green text
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  Up to date: {latestReleaseDate}
-                </div>
-              )}
-
-              <span
-                style={{
-                  fontSize: "13px",
-                  color: "#555",
-                  fontStyle: "italic",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Missing cards, wrong data, bugs, or feature discussion →
-              </span>
-
-              <a
-                href={DISCORD_INVITE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: "inline-block",
-                  backgroundColor: "#5865F2",
-                  color: "#fff",
-                  border: "1px solid #4c59d4",
-                  fontWeight: "bold",
-                  textDecoration: "none",
-                  padding: "8px 12px",
-                  borderRadius: "6px",
-                  whiteSpace: "nowrap",
-                  transition: "transform 0.1s ease, box-shadow 0.1s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                  e.currentTarget.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-              >
-                Join Discord
-              </a>
-            </div>
+              Join Discord
+            </a>
           </div>
         </div>
-        <div className="table-scroll-wrapper">
-          {searchPerformed && (
-            <CardTable
-              displayedData={displayedData}
-              confirmedSearchInput={confirmedSearchInput}
-              confirmedSearchField={confirmedSearchField}
-              tableRef={tableRef}
-              columnCount={columnCount}
-              minWidths={minWidths}
-              shouldUseRarityIcons={shouldUseRarityIcons}
-            />
-          )}
-        </div>
-        <div className="sticky-bottom-container">
-          <div className="bottom-bar-inner">
-            <div className="bottom-disclaimer">
-              This is a fan-made TCG database tool. Not affiliated with,
-              endorsed or sponsored by Nintendo, The Pokémon Company or
-              Creatures Inc.
-            </div>
+      </div>
+      <div className="table-scroll-wrapper">
+        {searchPerformed && (
+          <CardTable
+            displayedData={displayedData}
+            confirmedSearchInput={searchInput}
+            confirmedSearchField={dropdownSelection}
+            tableRef={tableRef}
+            columnCount={columnCount}
+            minWidths={minWidths}
+            shouldUseRarityIcons={shouldUseRarityIcons}
+          />
+        )}
+      </div>
+      <div className="sticky-bottom-container">
+        <div className="bottom-bar-inner">
+          <div className="bottom-disclaimer">
+            This is a fan-made TCG database tool. Not affiliated with, endorsed
+            or sponsored by Nintendo, The Pokémon Company or Creatures Inc.
+          </div>
 
-            <div className="bottom-total">
-              Total cards: {data.length.toLocaleString("en-US")}
-            </div>
+          <div className="bottom-total">
+            Total cards: {data.length.toLocaleString("en-US")}
           </div>
         </div>
       </div>
