@@ -678,6 +678,24 @@ function renderCardNameWithSymbols(cardName, row = {}, overrideSymbolFlags = {})
       types: ["Darkness"],
       suffix: "Energy",
     },
+    
+    "growing (grass) energy": {
+      base: "Growing",
+      types: ["Grass"],
+      suffix: "Energy",
+    },
+
+    "rocky (fighting) energy": {
+      base: "Rocky",
+      types: ["Fighting"],
+      suffix: "Energy",
+    },
+
+    "telepathic (psychic) energy": {
+      base: "Telepathic",
+      types: ["Psychic"],
+      suffix: "Energy",
+    },
   };
 
   const energyConfig = energyCardMap[lower];
