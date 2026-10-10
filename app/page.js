@@ -368,6 +368,7 @@ const setCodes = {
   "Perfect Order": "me3",
   "Chaos Rising": "me4",
   "Pitch Black": "me5",
+  "30th Celebration": "me55",
 };
 
 const getScrydexSymbolUrl = (code) =>
@@ -482,8 +483,20 @@ function parseExpansionName(expansionName = "") {
   return { raw, base, tags };
 }
 
-function getSymbolsForExpansion(expansionName) {
+function getSymbolsForExpansion(expansionName, notes = "") {
   const { raw: name, base: baseName } = parseExpansionName(expansionName);
+
+  if (name.includes("(Classic Collection)")) {
+    const lowerNotes = notes.toLowerCase();
+
+    const originalSet = Object.keys(setCodes).find((setName) =>
+      lowerNotes.includes(`${setName.toLowerCase()} reprint`)
+    );
+
+    if (originalSet) {
+      return [setSymbols[originalSet]].filter(Boolean);
+    }
+  }
 
   // New-style rectangle promos (S&V + ME) – allow suffix variants like "(PP)"
   if (baseName === "SV Black Star Promo") {
@@ -589,6 +602,8 @@ const svRarityIcons = {
   "Black White Rare": "/icons/Rarity_BW.png",
   "ACE SPEC Rare": "/icons/Rarity_AS.png",
   "Mega Attack Rare": "/icons/Rarity_MAR.png",
+  "Futuristic Rare": "/icons/Rarity_FR.png",
+  "RGB Rare": "/icons/Rarity_RGB.png",
 };
 
 function renderCardNameWithSymbols(cardName, row = {}, overrideSymbolFlags = {}) {
@@ -869,6 +884,7 @@ function isModernRectangleSymbol(expansionName = "") {
       "Perfect Order",
       "Chaos Rising",
       "Pitch Black",
+      "30th Celebration",
     ].includes(base)
   );
 }
@@ -934,7 +950,7 @@ const CardTable = React.memo(function CardTable({
           <tr key={i}>
             {renderCell(row["Series"], "series")}
             <td className="expansion">
-              {getSymbolsForExpansion(rawExpansion).map((url, j) => {
+              {getSymbolsForExpansion(rawExpansion, row["Notes"]).map((url, j) => {
         const isRectangle = isModernRectangleSymbol(rawExpansion);
 
         if (isRectangle) {
