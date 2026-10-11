@@ -749,7 +749,12 @@ function renderCardNameWithSymbols(cardName, row = {}, overrideSymbolFlags = {})
 
   const categoryRaw = (row["Category"] || "").trim().toLowerCase();
   const isPokemonCard = categoryRaw === "pokémon" || categoryRaw === "pokemon";
-  const allowMegaIcon = seriesCode === "XY" && isPokemonCard;
+
+  const isClassicCollection = (row["Expansion"] || "").includes("(Classic Collection)");
+
+  const allowMegaIcon =
+    (seriesCode === "XY" || isClassicCollection) &&
+    isPokemonCard;
 
   const lowerName = (cardName || "").toLowerCase();
 
@@ -774,7 +779,10 @@ function renderCardNameWithSymbols(cardName, row = {}, overrideSymbolFlags = {})
   let exIcon = EX_ICON_BY_SERIES[seriesCode];
 
   // ME nuance: ME ex icon is only for Mega Pokémon; non-Mega ex in ME uses the S&V ex icon
-  if (seriesCode === "ME") {
+  if (
+    seriesCode === "ME" &&
+    !(row["Expansion"] || "").includes("(Classic Collection)")
+  ) {
     const hasMegaWord = /\bmega\b/.test(lowerName);
     exIcon = hasMegaWord ? "/icons/ex_ME.png" : "/icons/ex_SV.png";
   }
@@ -852,6 +860,12 @@ function getExpansionSymbolHeight(expansionName) {
 
 function isModernRectangleSymbol(expansionName = "") {
   const { raw, base } = parseExpansionName(expansionName);
+
+  // Classic Collection reprints use the original card's classic set symbol,
+  // not the modern rectangular 30th Celebration symbol.
+  if (raw.includes("(Classic Collection)")) {
+    return false;
+  }
 
   return (
     base === "SV Black Star Promo" ||
@@ -946,12 +960,21 @@ const CardTable = React.memo(function CardTable({
 
         const rawExpansion = row["Expansion"] || "";
 
+        const symbolExpansion =
+          rawExpansion.includes("(Classic Collection)")
+            ? Object.keys(setCodes).find((setName) =>
+                (row["Notes"] || "")
+                  .toLowerCase()
+                  .includes(`${setName.toLowerCase()} reprint`)
+              ) || rawExpansion
+            : rawExpansion;
+
         return (
           <tr key={i}>
             {renderCell(row["Series"], "series")}
             <td className="expansion">
-              {getSymbolsForExpansion(rawExpansion, row["Notes"]).map((url, j) => {
-        const isRectangle = isModernRectangleSymbol(rawExpansion);
+              {getSymbolsForExpansion(symbolExpansion, row["Notes"]).map((url, j) => {
+        const isRectangle = isModernRectangleSymbol(symbolExpansion);
 
         if (isRectangle) {
         return (
@@ -973,7 +996,7 @@ const CardTable = React.memo(function CardTable({
             alt={`${rawExpansion} symbol`}
             className="set-symbol"
             style={{
-              height: getExpansionSymbolHeight(rawExpansion),
+              height: getExpansionSymbolHeight(symbolExpansion),
               width: "auto",
             }}
           />
@@ -1406,8 +1429,17 @@ if (colIndex === 1) {
 
   tds.forEach((cell, rowIndex) => {
     const expansion = displayedData[rowIndex]?.["Expansion"] || "";
-    const symbols = getSymbolsForExpansion(expansion);
-    const isRectangle = isModernRectangleSymbol(expansion);
+    const notes = displayedData[rowIndex]?.["Notes"] || "";
+
+    const symbolExpansion =
+      expansion.includes("(Classic Collection)")
+        ? Object.keys(setCodes).find((setName) =>
+            notes.toLowerCase().includes(`${setName.toLowerCase()} reprint`)
+          ) || expansion
+        : expansion;
+
+    const symbols = getSymbolsForExpansion(symbolExpansion, notes);
+    const isRectangle = isModernRectangleSymbol(symbolExpansion);
 
     const baseSymbolsHTML = symbols
       .map((url) => {
@@ -1451,7 +1483,7 @@ if (colIndex === 1) {
           `;
         }
 
-        const h = getExpansionSymbolHeight(expansion);
+        const h = getExpansionSymbolHeight(symbolExpansion);
 
         return `
           <img
@@ -1686,7 +1718,10 @@ useEffect(() => {
 
   if (searchField === "Expansion") {
     const normalizedInput = trimmedInput;
-    const skipSortExpansions = ["celebrations"];
+    const skipSortExpansions = [
+      "celebrations",
+      "30th celebration",
+    ];
     const shouldSkipSort = skipSortExpansions.some(name => normalizedInput.startsWith(name));
 
     if (!shouldSkipSort) {
