@@ -369,6 +369,7 @@ const setCodes = {
   "Chaos Rising": "me4",
   "Pitch Black": "me5",
   "30th Celebration": "me55",
+  "Delta Reign": "me6",
 };
 
 const getScrydexSymbolUrl = (code) =>
@@ -899,6 +900,7 @@ function isModernRectangleSymbol(expansionName = "") {
       "Chaos Rising",
       "Pitch Black",
       "30th Celebration",
+      "Delta Reign",
     ].includes(base)
   );
 }
